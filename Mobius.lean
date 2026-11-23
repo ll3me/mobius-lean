@@ -59,3 +59,9 @@ import Mobius.MatrixPromise
 import Mobius.FullBoardMerge
 import Mobius.BoardProgramRestriction
 import Mobius.PinnedGate
+import Mobius.ThreeFaceRealization
+import Mobius.ThreeFaceCompletion
+import Mobius.ThreeFaceMemory
+import Mobius.CommonCoreQuery
+import Mobius.ThreeFaceProbeJoin
+import Mobius.ThreeFaceDeletion

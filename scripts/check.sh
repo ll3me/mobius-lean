@@ -40,3 +40,7 @@ python3 experiments/full_board_caps.py
 python3 experiments/port_gap.py
 python3 experiments/board_input_bits.py
 python3 experiments/read_bounded_boards.py
+python3 experiments/three_face_profiles.py
+python3 experiments/common_core_signatures.py
+python3 experiments/free_direction_coloring.py
+python3 experiments/three_face_queries.py
