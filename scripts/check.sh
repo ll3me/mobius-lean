@@ -9,6 +9,7 @@ fi
 lean --version
 lake build
 lake env lean Audit.lean
+lake env lean experiments/EncodedCuts.lean
 python3 experiments/sign_obstruction.py
 python3 experiments/two_phases.py
 python3 experiments/contractions.py
