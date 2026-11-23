@@ -25,3 +25,11 @@
 ## 稀疏选面、奇环与恰一真
 
 布尔反相器的奇环需要一个缺陷、图上同色边的最小数等于边数减最大割、以及正文字 1-in-3 的 NP 完全性，都有经典解释。本次工作的具体内容是让这些关系在指定的 XOR 方形、真实共享的四角坐标以及两张全局符号表上同时成立，并保留每个表项被使用的次数和原始等权失败数。最值得核查先例的表述是这个几何族在表项出现次数至多二和至多三之间的复杂性分界，以及它的精确赋值代价。本页此前针对 1/15 的文献核查没有确立这两个新表述的历史优先权。[几何归约](PortEmbedding.md) · [Schaefer 的源问题](https://doi.org/10.1145/800133.804350) · [Alimonti 与 Kann 的有界度最大割](https://www.sciencedirect.com/science/article/pii/S0304397598001583)
+
+## 本轮算法模型的先例
+
+**甲线 · 重复实验（Lean 形式化复现）。** 独立集由二元二次多面体的边坐标取零得到，单调算术电路取面的逐门剪枝保持大小。这两个先例分别给出这里的几何与电路步骤。本项目将它们接到四角表的全顶点一元价格和可复用 DAG。网格 MWIS 电路下界采用 Korhonen 的定理，方格上允许减法后的上界采用 Hertrich–Sering 的精确最大流电路。[Laurent、Poljak、Rendl，§4.2](https://pure.uvt.nl/ws/portalfiles/portal/1215879/Connections.pdf#page=11) · [Grochow、Mulmuley、Qiao，定理 16](https://arxiv.org/pdf/1605.02815#page=27) · [Korhonen，定理 1 与推论 3](https://arxiv.org/pdf/2102.06901#page=2) · [Hertrich、Sering，算法 2–3 与定理 2](https://arxiv.org/pdf/2102.06635#page=12)
+
+**乙线 · 重复实验（Lean 形式化复现）。** Hennie 已对首尾相同、中间填充的语言用单带越界记录得到 $\Theta(N^{3/2})$。Viola 的习题明确提出从填充回文归约到 3-SAT。仓库证明了自己的一元变量编号 3-CNF 在真实双向单带机上的 $\Omega_M(N^{3/2})$ 下界，并对同一次接受运行计费。[Hennie，1965，页 572–574](https://www.eecs.tufts.edu/~aloupis/comp260/lectures/hennie-1965.pdf#page=20) · [Viola，2023，Problem 4.2](https://emanueleviola.wordpress.com/2023/02/09/mathematics-of-the-impossible-computational-complexity-chapter-4-reductions/)
+
+以上归属按步骤和模型给出。两条线在本仓库中的核验范围分别见[电路复现记录](ReusableCircuits.md)与[单带机复现记录](NextStep.md)。

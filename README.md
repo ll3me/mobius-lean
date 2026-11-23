@@ -14,6 +14,12 @@
 
 **同一份 15 方形证书还能编码正文字“恰一真”。** 把第 1、3、6 面作为端口，其余面全部成功时，允许一个或三个端口失败。再要求整块恰好失败一次，便留下恰一真。用同一证书的另外两个端口做反相线，可以在同一对全局相位表中接入有环的任意公式。对 $m$ 个子句，构造输出 $417m$ 个互异、单位权重的方形。允许至多 $m$ 个失败的判定问题是 NP 完全的。进一步限制每个表项被多少个方形读取，也有一道精确分界。最多两次时，图遍历即可求最优值；允许三次时，另一份无权构造已足以证明判定问题 NP 完全。局部延拓与代价已有 Lean 证明，一般规模的归约有书面证明及可运行的编译器。[完整归约、精确最优值及验证范围](docs/PortEmbedding.md)
 
+## 本轮的两项复现
+
+**甲线 · 重复实验（Lean 形式化复现）。** 独立集由二元二次多面体的边坐标取零得到，单调算术电路取面的逐门剪枝保持大小。这两个先例分别给出这里的几何与电路步骤。本项目将它们接到四角表的全顶点一元价格和可复用 DAG。网格 MWIS 电路下界采用 Korhonen 的定理，方格上允许减法后的上界采用 Hertrich–Sering 的精确最大流电路。[Laurent、Poljak、Rendl，§4.2](https://pure.uvt.nl/ws/portalfiles/portal/1215879/Connections.pdf#page=11) · [Grochow、Mulmuley、Qiao，定理 16](https://arxiv.org/pdf/1605.02815#page=27) · [Korhonen，定理 1 与推论 3](https://arxiv.org/pdf/2102.06901#page=2) · [Hertrich、Sering，算法 2–3 与定理 2](https://arxiv.org/pdf/2102.06635#page=12) · [甲线证明与运算边界](docs/ReusableCircuits.md)
+
+**乙线 · 重复实验（Lean 形式化复现）。** Hennie 已对首尾相同、中间填充的语言用单带越界记录得到 $\Theta(N^{3/2})$。Viola 的习题明确提出从填充回文归约到 3-SAT。仓库证明了自己的一元变量编号 3-CNF 在真实双向单带机上的 $\Omega_M(N^{3/2})$ 下界，并对同一次接受运行计费。[Hennie，1965，页 572–574](https://www.eecs.tufts.edu/~aloupis/comp260/lectures/hennie-1965.pdf#page=20) · [Viola，2023，Problem 4.2](https://emanueleviola.wordpress.com/2023/02/09/mathematics-of-the-impossible-computational-complexity-chapter-4-reductions/) · [乙线证明与计费边界](docs/NextStep.md)
+
 ## 成果
 
 | 问题 | 结论 | 验证与依据 |
@@ -39,11 +45,9 @@
 
 `check.sh` 构建全部 Lean 模块，审计 `Mobius` 和所导入 `Complexity` 声明的传递公理，再运行标准库 Python 实验。公理审计允许 `propext`、`Classical.choice`、`Quot.sound`。一般双表的 **282 全局下界**由书面论证和精确有限计算共同支持，它的完整证明尚未全部移入 Lean。上游 ETH 算法和 Singh 的 Mathlib 工程有各自的验证入口。[主检查](scripts/check.sh) · [Lean 模块入口](Mobius.lean) · [公理审计](Audit.lean)
 
-## 下一步
+## 当前的模型边界
 
-四比特问题现在留下了一个有限的目标。要求上面 $K_4$ 的 78 面恰坏两个时，整板最少坏多少个带起点条件？现有证据把答案夹在 **282 与 304** 之间。找到成本低于 304 的相位对，或给出排除所有中间成本的证书，都能缩小这个区间。[四比特见证与已知范围](docs/PortEmbedding.md)
-
-**把同一条输入边界推广到允许回读的机器。** 在实际的 137 位探针编码里，从左到右只扫描一遍的确定性算法，读完前 77 位时必须区分 256 种状态。已有扫描器在该切点恰好保留 8 位。下一步是给仓库的单带机运行记录每次越界的控制状态，证明相同的越界记录允许拼接两条接受运行，再在可增长的公式族上对实际步数计费。[已证明的一遍扫描定理](Mobius/BoundaryScan.lean) · [单带机研究计划](docs/NextStep.md)
+方格上的反相线目标同时有可任意复用的纯电路指数下界和有减法的多项式电路。当前需要解释一般布尔算法的位操作与共享内存能否被某种仍有下界的接口高效模拟。单带线上，输入布局的逐切口正例区分计数已经达到它在该编码上的渐近上限；更强结论需要额外的运行约束。[可复用电路](docs/ReusableCircuits.md) · [真实单带机](docs/NextStep.md)
 
 ## 文件与来源
 

@@ -28,3 +28,7 @@ python3 experiments/one_in_three_geometry.py
 python3 experiments/cubic_ports.py
 python3 experiments/port_cut.py
 python3 experiments/port_k4.py
+python3 experiments/tropical_controls.py
+python3 experiments/crossing_controls.py
+python3 experiments/unary_sat.py --self-test
+python3 experiments/recognized_gadgets.py

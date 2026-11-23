@@ -10,6 +10,12 @@
 
 在同一份四比特整板上已出现局部与整体最优的分离。四个真实端口组成 $K_4$ 的 78 个选中面，单独最低失败数为 2，所有整板 $1/15$ 最优解在此至少坏 3 个。只改行表一格、列表一格可以达到局部最优。这把生成证明回路的奇闭合与先前的方向刚性接在了同一对具体符号表上。[四比特选面定理](../Mobius/FourBitPortCut.lean)
 
+## 本轮复现与文献归属
+
+**甲线 · 重复实验（Lean 形式化复现）。** 独立集由二元二次多面体的边坐标取零得到，单调算术电路取面的逐门剪枝保持大小。这两个先例分别给出这里的几何与电路步骤。本项目将它们接到四角表的全顶点一元价格和可复用 DAG。网格 MWIS 电路下界采用 Korhonen 的定理，方格上允许减法后的上界采用 Hertrich–Sering 的精确最大流电路。[Laurent、Poljak、Rendl，§4.2](https://pure.uvt.nl/ws/portalfiles/portal/1215879/Connections.pdf#page=11) · [Grochow、Mulmuley、Qiao，定理 16](https://arxiv.org/pdf/1605.02815#page=27) · [Korhonen，定理 1 与推论 3](https://arxiv.org/pdf/2102.06901#page=2) · [Hertrich、Sering，算法 2–3 与定理 2](https://arxiv.org/pdf/2102.06635#page=12) · [本仓库的有理数编译定理](../Mobius/TropicalPort.lean)
+
+**乙线 · 重复实验（Lean 形式化复现）。** Hennie 已对首尾相同、中间填充的语言用单带越界记录得到 $\Theta(N^{3/2})$。Viola 的习题明确提出从填充回文归约到 3-SAT。仓库证明了自己的一元变量编号 3-CNF 在真实双向单带机上的 $\Omega_M(N^{3/2})$ 下界，并对同一次接受运行计费。[Hennie，1965，页 572–574](https://www.eecs.tufts.edu/~aloupis/comp260/lectures/hennie-1965.pdf#page=20) · [Viola，2023，Problem 4.2](https://emanueleviola.wordpress.com/2023/02/09/mathematics-of-the-impossible-computational-complexity-chapter-4-reductions/) · [本仓库带实际时钟的命题](../Mobius/CrossingMachine.lean)
+
 ## 一小时续验的四位阈值、五位边界与 ETH 交叉
 
 [本轮结果与验证范围](HourResults.md) · [文献优先权核查](Priority.md)

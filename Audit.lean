@@ -109,3 +109,22 @@ run_cmd do
 #print axioms Mobius.PortGraph.selected_distinct
 #print axioms Mobius.PortGraph.selected_length
 #print axioms Mobius.PortCutEdits.minimum_hamming
+
+#print axioms Mobius.TropicalDAG.directional_restriction
+#print axioms Mobius.TropicalMWIS.compile_for_mwis
+#print axioms Mobius.TropicalPort.compiled_geometric_for_mwis
+#print axioms Mobius.DirectionalWeights.singleton_bounded_output
+#print axioms Mobius.UnaryCut.mincut_exact
+#print axioms Mobius.UnaryCut.deletion_mincut
+#print axioms Mobius.UnaryCut.triangle_energy_obstruction
+#print axioms Mobius.CrossingRun.advance_embed
+#print axioms Mobius.CrossingRun.trace_of_runInput
+#print axioms Mobius.CrossingRun.splice_accept
+#print axioms Mobius.CrossingMachine.ordinary_threeSAT_time
+#print axioms Mobius.CrossingCeiling.total_ceiling
+#print axioms Mobius.UnaryWitness.sparse_witness
+#print axioms Mobius.WitnessStream.accept_iff_encoded
+#print axioms Mobius.WitnessPacking.sqrt_bound
+
+#print axioms Mobius.TropicalProduct.directional
+#print axioms Mobius.TropicalProduct.compiled_geometric_product_for_mwis
