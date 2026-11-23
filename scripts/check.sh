@@ -38,3 +38,5 @@ python3 experiments/whole_board_matching.py
 python3 experiments/axis_relations.py
 python3 experiments/full_board_caps.py
 python3 experiments/port_gap.py
+python3 experiments/board_input_bits.py
+python3 experiments/read_bounded_boards.py

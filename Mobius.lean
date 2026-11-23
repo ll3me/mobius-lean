@@ -57,3 +57,5 @@ import Mobius.ParallelSignature
 import Mobius.DoubleFan
 import Mobius.MatrixPromise
 import Mobius.FullBoardMerge
+import Mobius.BoardProgramRestriction
+import Mobius.PinnedGate
