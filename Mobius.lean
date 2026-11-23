@@ -8,6 +8,7 @@ import Mobius.Duality
 import Mobius.EightGroups
 import Mobius.EightSquare
 import Mobius.Endpoint
+import Mobius.FixedGraphConjecture
 import Mobius.EthSwap
 import Mobius.FixedCutRank
 import Mobius.Inclusion

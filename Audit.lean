@@ -36,6 +36,7 @@ run_cmd do
 
 #print axioms Mobius.TwoPhases.optimum_failure_fraction
 #print axioms Mobius.Endpoint.extraction_iff_separation
+#print axioms Mobius.FixedGraphConjecture.iff_separation
 
 #print axioms Mobius.DirectionLaws.minimum_weight
 #print axioms Mobius.DirectionLaws.failures_attained
