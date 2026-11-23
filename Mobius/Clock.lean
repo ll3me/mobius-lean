@@ -57,16 +57,4 @@ theorem separation_iff_clock_failure :
     obtain ⟨x, bad⟩ := fails M c k
     exact bad (h x)
 
-/-- Any proposed uniform theorem producing orientations from fast *correct*
-machines is sufficient in the presence of an odd loop. Its key premise is
-explicit. An arbitrary proof graph or fast machine alone supplies no such map. -/
-theorem separation_of_orientation_extraction {V : Type}
-    {E : Mobius.Transport.SignedEdges V} {v : V}
-    (odd : Mobius.Transport.Walk E v v true)
-    (extract : ∀ M c k, (∀ x, CorrectBy SeamLanguage M (powerBound c k x.length) x) →
-      Mobius.Transport.Orientable E) : ¬ Collapse := by
-  intro h
-  obtain ⟨M, c, k, fast⟩ := (inP_iff_clock _).mp (collapse_iff_fast_seam.mp h)
-  exact Mobius.Transport.oddLoop_forbids_orientation odd (extract M c k fast)
-
 end Mobius.Clock

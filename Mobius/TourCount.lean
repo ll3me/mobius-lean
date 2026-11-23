@@ -167,4 +167,9 @@ example : sharp [[]] = 0 ∧ twoTours [[]] false false = 0 := by decide +kernel
 example : sharp [[⟨0,true⟩, ⟨0,false⟩]] = 2 ∧
     twoTours [[⟨0,true⟩, ⟨0,false⟩]] true true = 4 := by decide +kernel
 
+example : sharp [[⟨3, true⟩]] = 8 := by decide
+example : countWith 6 [[⟨3,true⟩]] = 32 := by decide
+example : encode ([] : CNF) = [false] := by decide
+example : decode ([] : List Bool) = none := by decide
+
 end Mobius.TourCount

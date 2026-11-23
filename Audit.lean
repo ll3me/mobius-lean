@@ -29,14 +29,11 @@ run_cmd do
 #print axioms Mobius.TwoPhases.no_integer_cancellation
 #print axioms Mobius.SwapSupport.support_and_window
 
-
 #print axioms Mobius.Inclusion.collapse_iff_eq
 #print axioms Mobius.TourCount.transfer_entry
 #print axioms Mobius.SignObstruction.valid_rectangle_iff_zero
 
 #print axioms Mobius.TwoPhases.optimum_failure_fraction
-#print axioms Mobius.Endpoint.extraction_iff_separation
-#print axioms Mobius.FixedGraphConjecture.iff_separation
 
 #print axioms Mobius.DirectionLaws.minimum_weight
 #print axioms Mobius.DirectionLaws.failures_attained
@@ -57,3 +54,28 @@ run_cmd do
 #print axioms Mobius.RankTrade.arbitrary_center_product
 #print axioms Mobius.Rigidity.Backtracks.optimal_law
 #print axioms Mobius.NaslundRestriction.witness_strip
+
+#print axioms Mobius.BoundaryProbe.probe_threeSAT_iff
+#print axioms Mobius.BoundaryProbe.probe_word_injective
+#print axioms Mobius.BoundaryDecision.probeErrors_eq_failures
+#print axioms Mobius.BoundaryDecision.coincident_ports_count
+#print axioms Mobius.BoundaryDecision.probe_optimum
+#print axioms Mobius.BoundaryDecision.pointwise_threshold
+#print axioms Mobius.BoundaryDecision.opposite_answers_same_measure
+#print axioms Mobius.BoundaryDecision.no_uniform_scalar_decoder
+#print axioms Mobius.BoundaryDecision.correct_machine_distinguishes
+#print axioms Mobius.BoundaryDecision.cancellation_example
+#print axioms Mobius.BoundarySemantics.joined_sharp_dot
+#print axioms Mobius.BoundarySemantics.optimal_count_reconstruction
+#print axioms Mobius.BoundaryTwoSums.tours_from_two
+#print axioms Mobius.BoundaryTwoSums.clipping_order_example
+#print axioms Mobius.BoundaryTwoSums.exact_measurement_number
+#print axioms Mobius.BoundaryScan.seam_injective
+#print axioms Mobius.BoundaryScan.one_pass_lower_bound
+#print axioms Mobius.BoundaryScan.buffered_at_cut
+#print axioms Mobius.BoundaryScan.buffered_correct
+
+#print axioms Mobius.BoundaryBooleanRate.threshold_errors_eq_failures
+#print axioms Mobius.BoundaryBooleanRate.optimal_error_direction
+#print axioms Mobius.BoundaryBooleanRate.sharp_threshold
+#print axioms Mobius.BoundaryBooleanRate.sharp_all_decoders

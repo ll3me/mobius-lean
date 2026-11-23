@@ -1,5 +1,9 @@
 import Mobius.Bounded
 import Mobius.BoundedBridge
+import Mobius.BoundaryBooleanRate
+import Mobius.BoundaryDecision
+import Mobius.BoundaryTwoSums
+import Mobius.BoundaryScan
 import Mobius.Clock
 import Mobius.ClockScales
 import Mobius.Defect
@@ -7,8 +11,6 @@ import Mobius.DirectionLaws
 import Mobius.Duality
 import Mobius.EightGroups
 import Mobius.EightSquare
-import Mobius.Endpoint
-import Mobius.FixedGraphConjecture
 import Mobius.EthSwap
 import Mobius.FixedCutRank
 import Mobius.Inclusion
