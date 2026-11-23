@@ -1,68 +1,77 @@
-# 3-SAT 证明中的翻面
+# Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-**模型：GPT 6.2-Astra**（本项目的研究、实现与整理）
+> 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
-[11 月 23 日研究日结：已证结果、前人工作与桥接问题](docs/2026-11-23.md)
+本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。
 
-**给定完整四维板的坐标，判定是否存在同一对全局符号表使每块同时达到局部最优，是 NP 完全的。** 输入只列各板的四个独立二元基向量，表项与失败方向均可自由选择。对 $n$ 个顶点、$m$ 条边的简单图，构造使用 $n+7m+7$ 张板。构造将每个合法三着色延拓为逐格相容的全局表，也能从任意逐板最优实现读回合法三着色。Lean 定理 `finite_graph_iff` 核验了这一可行性等价。此处要求每块板分别恰坏 128 个无向方形（$1/15$）。按实际地址去重后对整个并集设阈值的问题另见下文。[有限坐标定理](Mobius/ThreeFaceRealization.lean) · [归约、单板让步与 140 的按页代价上界](docs/FreeDirections.md)
+## 省流 / 实测情况
 
-**已有工作。** Lenzhen、Morier-Genoud、Ovsienko 给出单表四角方程，Yagunov 用同类方程排除 16 阶棋盘型拉丁方的完全极化。Williams 图 4.1 给出布尔异或桥所用的匹配三角形。Porschen 等给出法诺七线的恰一真障碍与删线性质。Arends、Ouaknine、Wampler 已用三态顶点和异色边构件从图三着色归约到 101-可着色性。[原文页码、命题与对应的 Lean 核验](docs/Priority.md#逐板同时最优与图三着色)
+**没有做什么：** 本项目**没有**证明 $\mathrm{P} \ne \mathrm{NP}$，没有改善上游已有 ETH 构造的总体时间上界（仓库里算出的 1,521 只是特定三比特分组下的局部对照常数），也没有突破任何通用计算模型的时间下界。
 
-**让程序自选读取顺序，完整板输入上仍有可转移的下界。** 将扩展图的顶点覆盖位各放进一个完整板坐标的最低位，其余输入位固定。这样就能把文献中自由只读一次非确定性分支程序和可分解电路的指数下界直接搬到实际板列表。更换源函数后，对任意固定读数 $r$ 也可搬运 BRS 的指数下界。前者的坐标、几何语义以及保持共享 DAG 的限制步骤均已通过 Lean；后者的蝶形电路由书面归约与可执行编译器核验。下界计的是相应程序或表示的规模。[完整板输入与读取模型](docs/BoardInputModels.md) · [BRS 的有限回读版本](docs/ReadBoundedSource.md)
+**最后做出来了什么：**
 
-**共享真实表项后，局部最优可以被迫让步。** 一块完整四维板的 1,920 个无向方形最少坏 128 个。在它的两条轴上各挂 14 块完整叶板，坚持中央板最优时整个并集最少坏 3,684 个；另有同一对全局表只坏 3,682 个。因此每个全局最优解都必须牺牲中央板。这个例子只需记两条轴各坏几个。平行三维面接成的环也能压缩，指定方向能否共存恰好由三位异或决定。[精确代价公式与验证范围](docs/SharedOptima.md) · [三维接口的延拓计算](docs/ParallelOverlap.md)
+1. **四比特独立双表的组合刚性、间隙与局部/全局冲突**：把经典的单表 $1/15$ 障碍推到任意两张独立符号表，证明 3,840 个条件中最少失败 256 次且所有失败集中在唯一方向，精确数出全部 $15\cdot 2^{62}$ 对最优解并分类其残差；给出次小失败数 **282**（排除 257–281），并造出共享表项下“局部最优必须给全局最优让步”的具体例子（$K_4$ 的 78 面上 2 对 3 的分离、双扇结构 $p\ge 14$ 时被迫牺牲中央板）。
+2. **完整四维板 / 方形约束的 NP 完全归约与 3-SAT 边界接口**：用 15 方形矛盾证书造出“反相线”和“恰一真”门，把图三着色、正文字 1-in-3 SAT 和 Max-Cut 编进同一对全局符号表，证明“仅给四维板基向量、判定能否逐板同时最优”是 NP 完全的；并在普通 3-CNF 上证明固定双表边界求和“1 次必有真假碰撞、2 次恰好够恢复精确 `#SAT`”，7,680 项测试集的阈值判错数精确等于抵消失败数。
+3. **一套零 `sorry`、可一键复现的 Lean 4 形式化库**：[Mobius/](Mobius/) 下共 114 个 Lean 4 模块（23,362 行），外加仅依赖 Python 标准库的组合检验脚本。[Audit.lean](Audit.lean) 对 5,974 个 `Mobius` 声明和 3,933 个上游 `Complexity` 声明做了传递公理审计：零 `sorry`、零自定义公理、零 `native_decide`，所有定理仅依赖 Lean 4 标准三公理（`propext`、`Classical.choice`、`Quot.sound`）。
 
-**只给完整四维板也能表达恰一真。** 给每条端口轴另接一块完整板，使原来删去的两个方形在并集中恰好计一次。给定这些板与阈值，判定同一对表能否达标是 NP 完全的。无权归约只需排除四种无向失败数（129 至 132），文档给出相应的双计数证明与证书。用这套构造可把两张私有布尔矩阵分别编码在接口两侧。要精确判定能否共用一对表达到阈值，确定性协议即使任意缓存、交互，最坏也恰需传 $k^2$ 位。通信下界沿用经典集合不交论证；这里验证了从实际表项到集合相交的双向转换。普通集中式算法可以直接逐项比较两张源矩阵。[合并模型、前人结果与复现入口](docs/SharedOptima.md#宽接口的精确合并需要传多少位)
+**顺带做的对照与复现（不算新下界）：** 仓库还把几类文献里已有的受限计算模型下界（单带图灵机 $\Omega_M(N^{3/2})$、无减法 $\min,+$ 热带电路 $2^{\Omega(b)}$、nFBDD/DNNF、读 $r$ 次分支程序、两方通信）复现或搬运到了这套板输入编码上，并配了双带线性时间、带减法多项式最大流电路等反面对照——主要用来测这套障碍在加了哪些算法手段后会被绕开。
 
-绕一圈回到起点时，证明可以从一个端口走到它的反面。对普通 3-CNF，工程里的验证图让每个满足赋值恰好贡献一条这样的规范回路。四比特符号表现在也作用在同一份公式上。做法是在公式里选出四组各四个变量位置，按交叉顺序把两对端口逐位接起来。接好以后，满足赋值数、从一面到另一面的规范回路数、带符号的边界求和有了可以逐项核对的关系。[普通公式与边界的定义](Mobius/BoundarySemantics.lean)
+## 主要结果
 
-**在这个接口下，一次带符号求和不够判定 SAT，两次恰好够恢复精确的 #SAT。** 每次测量可预先任取一张行表和一张列表。哪怕允许用任意函数解释算出的整数，一次测量总有两个普通的 3-CNF 得分相同、一个有解一个无解。两组明确给出的表却能让错误项符号相反，在任意公式里相加都消掉。计算一次求和本身可以包含完整的模型计数成本。这里给出的最小值是测量次数。[定理、反例与计算范围](docs/BoundarySAT.md)
+下表按主题汇总主要结论，并明确区分 **Lean 4 形式化定理** 与 **书面推导 + Python 精确证书**。
 
-**原来的 $1/15$ 也有了判定意义。** 对每个方形造两份普通 3-CNF，一份有解、一份无解。用“总和大于零”作答时，方形抵消成功便两题全对，抵消失败便恰好错一道。因此在这 7,680 个测试项上最少错 256 次。达到最优时，只看错了哪些题，就能唯一认出四比特的失败方向。[方向如何从判错中读出](docs/BoundarySAT.md) · [Lean 定理](Mobius/BoundaryBooleanRate.lean)
-
-**莫比乌斯环的直觉可以直接做成一道最优化题。** 一根反相线由原证书的 13 个内面组成。在两端的四角已经指定后，两端缺陷位相反时，13 个面可以全部成功；相同则恰好要坏一个。沿奇环接一圈恰好留下一个失败面，偶环可全好。把任意简单图的每条边都这样接线，在同一对相位表上得到的最少失败数精确等于“边数减去最大割”。这个等式已在 Lean 中对一般有限图证明。[几何构造与证明](docs/PortEmbedding.md) · [实际方形上的奇环与最大割检验](experiments/port_cut.py)
-
-把四个端口在原来的四比特域中接成 $K_4$，可以直接比较两种最优。**78 个指定方形单独最少坏 2 个；要求同一对表在整板达到 $1/15$ 时，这 78 个最少坏 3 个。** 对一个整板最优解翻转两格，局部从 3 降到 2，整板从 256 升到 304。这两个计数及相位见证已经过 Lean 内核检查。[原四比特实例](Mobius/FourBitPortCut.lean) · [为什么两个目标不能同时达到最优](docs/PortEmbedding.md)
-
-**同一份 15 方形证书还能编码正文字“恰一真”。** 把第 1、3、6 面作为端口，其余面全部成功时，允许一个或三个端口失败。再要求整块恰好失败一次，便留下恰一真。用同一证书的另外两个端口做反相线，可以在同一对全局相位表中接入有环的任意公式。对 $m$ 个子句，构造输出 $417m$ 个互异、单位权重的方形。允许至多 $m$ 个失败的判定问题是 NP 完全的。进一步限制每个表项被多少个方形读取，也有一道精确分界。最多两次时，图遍历即可求最优值；允许三次时，另一份无权构造已足以证明判定问题 NP 完全。局部延拓与代价已有 Lean 证明，一般规模的归约有书面证明及可运行的编译器。[完整归约、精确最优值及验证范围](docs/PortEmbedding.md)
-
-## 本轮的两项复现
-
-**甲线 · 重复实验（Lean 形式化复现）。** 独立集由二元二次多面体的边坐标取零得到，单调算术电路取面的逐门剪枝保持大小。这两个先例分别给出这里的几何与电路步骤。本项目将它们接到四角表的全顶点一元价格和可复用 DAG。网格 MWIS 电路下界采用 Korhonen 的定理，方格上允许减法后的上界采用 Hertrich–Sering 的精确最大流电路。[Laurent、Poljak、Rendl，§4.2](https://pure.uvt.nl/ws/portalfiles/portal/1215879/Connections.pdf#page=11) · [Grochow、Mulmuley、Qiao，定理 16](https://arxiv.org/pdf/1605.02815#page=27) · [Korhonen，定理 1 与推论 3](https://arxiv.org/pdf/2102.06901#page=2) · [Hertrich、Sering，算法 2–3 与定理 2](https://arxiv.org/pdf/2102.06635#page=12) · [甲线证明与运算边界](docs/ReusableCircuits.md)
-
-**乙线 · 重复实验（Lean 形式化复现）。** Hennie 已对首尾相同、中间填充的语言用单带越界记录得到 $\Theta(N^{3/2})$。Viola 的习题明确提出从填充回文归约到 3-SAT。仓库证明了自己的一元变量编号 3-CNF 在真实双向单带机上的 $\Omega_M(N^{3/2})$ 下界，并对同一次接受运行计费。[Hennie，1965，页 572–574](https://www.eecs.tufts.edu/~aloupis/comp260/lectures/hennie-1965.pdf#page=20) · [Viola，2023，Problem 4.2](https://emanueleviola.wordpress.com/2023/02/09/mathematics-of-the-impossible-computational-complexity-chapter-4-reductions/) · [乙线证明与计费边界](docs/NextStep.md)
-
-## 成果
-
-| 问题 | 结论 | 验证与依据 |
+| 方向 / 问题 | 主要结论 | 验证形式与对应文件 |
 |---|---|---|
-| 任取一组几何方形，能否让失败数降至给定阈值 | 稀疏选面问题是 NP 完全的。若源子句 $C$ 有 $k_C$ 个真出现，固定源赋值后得到的精确最低代价为各子句 $1+\lvert k_C-1\rvert$ 之和。 | [Lean：局部端口](Mobius/OneInThree.lean) · [普通坐标编译器](experiments/one_in_three_geometry.py) |
-| 四比特抵消会怎样影响普通 3-CNF 判定 | 单个固定边界上，一组最优表用正阈值就能全部判对。把不同边界放进同一公式后，一次原始总和必有真假碰撞，两次固定总和恰好恢复模型数与规范回路数。 | [Lean：必要性与充分性](Mobius/BoundaryTwoSums.lean) · [构造与解释](docs/BoundarySAT.md) |
-| 普通 3-SAT 能否写成翻面回路问题 | 给定紧凑编码的公式，存在奇翻转回路当且仅当公式可满足。该语言在计时单带机模型中 NP 完全。每个满足赋值恰贡献一条从一个端口到另一端口的规范回路。 | [Lean：判定](Mobius/SATSeam.lean) · [Lean：计数](Mobius/TourCount.lean) |
-| 四比特最优双表会留下什么 | 3,840 个带起点条件中最少失败 256 个，即 1/15。每对最优表只在唯一一个方向上失败。对每个最优解，归一化残差都能通过分别重标张量各腿、改变边界符号，还原为完整交叉。 | [Lean 定理、最优解计数与残差等价](docs/RigidityKernel.md) |
-| 什么时候能让两种切割的残差秩都下降 | 失败数的第二小值恰为 **282**。最优解的两个残差矩阵都具有秩 256。翻转行表一个格子，可以在 282 次失败时达到秩 (255,254)。 | [全局排除的书面证明与精确计算证书](docs/SecondWeight.md) · [Lean：达到 282 的见证](Mobius/LockedGap.lean) |
-| 五比特与多块交叉 | 五比特任意双表的最少失败数在 2,342 与 3,072 之间，总计 31,744 个条件。一张表取特定结构、另一张任意时，最少恰为 3,072。另一个精确交叉构造使用 Breuer 的算子，在指定三比特分组中得到秩乘积的渐近底数 1,521。 | [五比特一般界](docs/FiveCollisions.md) · [结构化表](docs/FiveRowAffine.md) · [分组的上下界与上游比较](docs/RankTrade.md) |
+| 四比特双表最优失败率与刚性 | 3,840 个带起点非零方向测试（1,920 个无向方形）中，任意独立双表最少失败 256 次（$1/15$），所有失败集中于唯一方向；有序最优双表精确为 $15\cdot 2^{62}$ 对（单表 $15\cdot 2^{42}$）；归一化残差经逐腿重标与边界变号可还原为完整交叉 $W_{16}$。 | **Lean 4**：[DirectionLaws.lean](Mobius/DirectionLaws.lean)、[TwoPhases.lean](Mobius/TwoPhases.lean)、[RigidityEnumeration.lean](Mobius/RigidityEnumeration.lean)、[RigidityResidual.lean](Mobius/RigidityResidual.lean) · 详述见 [docs/RigidityKernel.md](docs/RigidityKernel.md) |
+| 四比特次小失败数（282）与降秩阈值 | 带起点失败数的第二小值恰为 **282**（排除 257–281），这也是行、列两切残差秩同时降至 256 以下的最小代价（可达 $(255,254)$）；另给出双表改两格的 304 构造（秩 $(253,253)$）。固定一张可延拓为最优解的表时，两秩均至少降 $j$（$0\le j\le 16$）精确需 $256+26j$。 | **混合**：282 见证及其零行、固定单表计数间隙与单块非奇异为 **Lean 4**（[LockedGap.lean](Mobius/LockedGap.lean)、[LockedRank.lean](Mobius/LockedRank.lean)）；完整的 $256+26j$ 降秩曲线与**一般独立双表的 282 全局下界尚未全进 Lean**，目前为书面证明与 Python 整数证书（[docs/LockedRankCurve.md](docs/LockedRankCurve.md)、[docs/SecondWeight.md](docs/SecondWeight.md)、[experiments/second_weight.py](experiments/second_weight.py)） |
+| 五比特双表与多块交叉分解 | 五比特 31,744 个条件下，任意双表最少失败数介于 2,342 与 3,072 之间；限第一张表在 404 维结构化空间（含全部次数 $\le 3$ 的布尔函数）、另一张任意时，最小值精确为 3,072（$3/31$）。使用 Breuer 算子对 $t$ 个三比特块作 $2t+1$ 分组，两切因子乘积底数精确为 1,521（局部对照，未改写普通 SAT 上界）；对最优及 282/304 残差应用 Singh 三切片不等式，混合切割至少需 22 个秩一项。 | **混合**：五比特逐切片四行仿射/显式族 3,072 界与达到例、Breuer 分组上下界及 Singh 残差切片条件为 **Lean 4**（[FiveRowAffine.lean](Mobius/FiveRowAffine.lean)、[RankTradeLower.lean](Mobius/RankTradeLower.lean)、[NaslundRestriction.lean](Mobius/NaslundRestriction.lean)）；404 维空间分类与五比特一般 2,342 下界为书面推导与脚本（[docs/FiveRowAffine.md](docs/FiveRowAffine.md)、[docs/FiveCollisions.md](docs/FiveCollisions.md)、[experiments/five_collisions.py](experiments/five_collisions.py)、[docs/RankTrade.md](docs/RankTrade.md)、[docs/Naslund.md](docs/Naslund.md)） |
+| 3-SAT 翻面回路与带符号边界求和 | 紧凑二进制 3-CNF 与“奇翻转验证回路”存在性双向等价并在计时单带机上 NP 完全，每个满足赋值恰对应一条规范回路。固定双表对未知公式只读一次边界总和必有真假碰撞，两次固定测量恰好够恢复精确 `#SAT`；在 7,680 项测试清单上，阈值判错总数等于抵消失败数（最少 256 次），错题分布唯一暴露失败方向。 | **Lean 4**：[SATSeam.lean](Mobius/SATSeam.lean)、[TourCount.lean](Mobius/TourCount.lean)、[BoundaryDecision.lean](Mobius/BoundaryDecision.lean)、[BoundaryTwoSums.lean](Mobius/BoundaryTwoSums.lean)、[BoundaryBooleanRate.lean](Mobius/BoundaryBooleanRate.lean) · 详述见 [docs/BoundarySAT.md](docs/BoundarySAT.md) |
+| 1-in-3 SAT、Max-Cut 与 $K_4$ 局部/整板冲突 | 任意有限简单图每边接一根 13 面反相线后，全局表上的最少失败数精确等于 $\lvert E\rvert-\operatorname{MaxCut}(G)$；正文字 1-in-3 编为 $417m$ 个互异等权方形（阈值 $m$）；表项最多读 2 次多项式可解，允许读 3 次即 NP 完全。在同一套 $16\times 16$ 表上嵌入 $K_4$ 的 78 面时，局部最少坏 2 个，但任何整板最优解（坏 256）在该 78 面上至少坏 3 个，两集合最小编辑距离为 2 格（翻转后整板坏 304）。 | **混合**：有限图 Max-Cut 等式、局部 1-in-3 与读次数分界代价、$K_4$ 78 面分离与最小编辑距离为 **Lean 4**（[PortGraph.lean](Mobius/PortGraph.lean)、[OneInThree.lean](Mobius/OneInThree.lean)、[FourBitPortCut.lean](Mobius/FourBitPortCut.lean)、[PortCutEdits.lean](Mobius/PortCutEdits.lean)）；一般规模 $417m$ 归约见书面推导与脚本（[docs/PortEmbedding.md](docs/PortEmbedding.md)、[experiments/one_in_three_geometry.py](experiments/one_in_three_geometry.py)） |
+| 完整四维板同时最优与公共面牺牲 | 仅给各四维板的四个独立二元基向量，判定是否存在同一对全局表使每块板同时坏 128 个：共用同一二维芯时总可同时最优；附带 7 块法诺线板即可编码图三着色（$n+7m+7$ 块板），判定为 NP 完全。共享轴双扇结构（$p\ge 14$ 块叶板）中任何全局最优解都必须牺牲中央板（3,682 vs 3,684）；平行三维面成环能否同时最优取决于切向分量异或为零。 | **混合**：有限图三着色等价、7 板法诺约束、双扇让步阈值（$p\ge 14$）与平行面异或判据为 **Lean 4**（[ThreeFaceRealization.lean](Mobius/ThreeFaceRealization.lean)、[ThreeFaceBoards.lean](Mobius/ThreeFaceBoards.lean)、[DoubleFan.lean](Mobius/DoubleFan.lean)、[ParallelSignature.lean](Mobius/ParallelSignature.lean)）；NP 完全性推论与脚本检查见 [docs/FreeDirections.md](docs/FreeDirections.md)、[docs/SharedOptima.md](docs/SharedOptima.md)、[experiments/free_direction_coloring.py](experiments/free_direction_coloring.py) |
+| 单带机时间下界与双带对照 | 在一元变量编号 3-CNF 布局上，任何正确判定 3-SAT 的确定性双向单带机在无穷多长度上至少需 $\Omega_M(N^{3/2})$ 步；同编码跨切口不相容正例的信息计数已达 $O(N^{3/2})$ 上限。同一批公式在“只读输入带 + 独立工作带”的双带机上可在 $O(N)$ 时间判定。 | **混合**：单带 $\Omega_M(N^{3/2})$ 真实时钟定理与稀疏证书切口上限为 **Lean 4**（[CrossingMachine.lean](Mobius/CrossingMachine.lean)、[WitnessPacking.lean](Mobius/WitnessPacking.lean)、[WitnessStream.lean](Mobius/WitnessStream.lean)）；双带线性时间构造与差分测试见 [docs/NextStep.md](docs/NextStep.md)、[experiments/crossing_controls.py](experiments/crossing_controls.py)、[experiments/recognized_gadgets.py](experiments/recognized_gadgets.py) |
+| 热带电路下界与减法上界 | 在边长 $b$ 的方格与三角网格全顶点一元价格问题上，精确的 $\min,+$（及含非负整数常数乘法）可复用 DAG 至少需 $2^{\Omega(b)}$ 个门；同在方格上允许减法，即可通过最大流电路得到 $O(b^8)$ 多项式规模上界。 | **混合**：四角目标到 MWIS 窗口的有理数编译及含乘法归一化为 **Lean 4**（[TropicalPort.lean](Mobius/TropicalPort.lean)、[TropicalProduct.lean](Mobius/TropicalProduct.lean)、[UnaryCut.lean](Mobius/UnaryCut.lean)）；MWIS 平面下界与最大流带减法上界引用前人定理并附脚本检查（[docs/ReusableCircuits.md](docs/ReusableCircuits.md)、[experiments/tropical_controls.py](experiments/tropical_controls.py)） |
+| 自由读序分支程序、DNNF 与两方通信 | 将扩展图顶点覆盖或 BRS 模 3 双线性函数投影到完整板输入串的单个物理位上，可把 nFBDD、DNNF（$2^{\Omega(n)}$）和句法读 $r$ 次分支程序指数下界搬到板列表上；宽接口两方合并与完整板非边查询分别需 $k^2$ 位（多轮交互）与 $\binom{k}{2}$ 位（单向记忆）。 | **混合**：位投影、给定 `Gap266` 假设下的阈值等价与 nFBDD/DNNF 限制、两方合并与非边查询记忆界为 **Lean 4**（[BoardProgramRestriction.lean](Mobius/BoardProgramRestriction.lean)、[MatrixPromise.lean](Mobius/MatrixPromise.lean)、[FullBoardMerge.lean](Mobius/FullBoardMerge.lean)、[ThreeFaceMemory.lean](Mobius/ThreeFaceMemory.lean)）；`Gap266`、BRS 蝶形编译、树张量网络切口与原文献下界见 [docs/BoardInputModels.md](docs/BoardInputModels.md)、[docs/ReadBoundedSource.md](docs/ReadBoundedSource.md)、[experiments/read_bounded_boards.py](experiments/read_bounded_boards.py) |
 
-**已有工作。** 单表的 $1/15$ 可由已有平方恒等式的显式构造和极化拉丁方的矛盾证书推出。对两张独立的表，仓库给出中间重量的排除，并分类**全部**最优解。Singh 的三切片下界可用于这里的残差，在允许混用两种切割时，具体的 256、282 和 304 构造仍至少需要 22 个秩一项。[文献归属与核验范围](docs/Priority.md) · [Singh 定理如何适用](docs/Naslund.md)
+## 前人工作与文献归属
 
-## 复现
+项目中的核心下界技巧、标准归约构件与上游基础形式化均来自已有文献，仓库主要完成这些结论在“四维板 / 双符号表 / 3-CNF 翻面”接口上的对接与 Lean 4 形式化：
 
-需要项目固定的 Lean 4 工具链 `v4.35.0-rc2`、Python 3.10 或以上、POSIX shell 和 tar。使用 elan 时，项目目录下的 `lean-toolchain` 会选择对应版本。运行：
+- **四角方程与四比特 $1/15$**：单表四角奇偶判据及 $1/15$ 显式构造来自 Lenzhen、Morier-Genoud 与 Ovsienko；16 阶棋盘型拉丁方不可极化的 15 方形矛盾结构来自 Yagunov。本仓库将其改写为独立双表计分并给出最优解分类、残差等价及 282 次重量证明。
+- **交叉分解、Breuer 算子与三切片下界**：ETH 次指数计数构造对照了 Anthropic 与 OpenAI 的 2026 年公开工作；三比特分组用的辛单态算子出自 Breuer（2006）；混合切割下的线性秩下界来自 Arth Singh 的三切片定理。
+- **图三着色与 1-in-3 构件**：布尔异或桥取自 Tyson Williams，法诺七线恰一真障碍取自 Porschen 等，三态顶点与异色边三着色归约取自 Arends、Ouaknine 与 Wampler，正文字 1-in-3 与有界度 Max-Cut 分别取自 Schaefer 与 Alimonti–Kann。
+- **受限模型与 Cook–Levin 基础**：单带机 crossing sequence 取自 Hennie（1965）及 Viola 的归约习题；热带电路下界与有符号最大流上界分别采用 Laurent–Poljak–Rendl、Grochow–Mulmuley–Qiao、Korhonen 与 Hertrich–Sering 的定理；nFBDD/DNNF 与读 $r$ 次下界取自 Amarilli 等、Bova 等及 Borodin–Razborov–Smolensky；计时单带图灵机与 Cook–Levin 形式化直接依赖 Robert D. Barish 的项目。
+
+各步骤对应的原论文页码、命题编号与本仓库 Lean 定理的映射关系，集中在 [docs/Priority.md](docs/Priority.md)。
+
+## 如何复现
+
+环境要求：项目固定的 Lean 4 工具链 `v4.35.0-rc2`（见 [lean-toolchain](lean-toolchain)）、Python 3.10+、POSIX shell 与 `tar`。使用 `elan` 时会自动切换到对应 Lean 版本。在仓库根目录运行：
 
 ```sh
 ./scripts/check.sh
 ```
 
-在 Apple Silicon Mac 上，也可以先用 `python3 scripts/bootstrap.py --local-lean` 将固定版本的编译器下载到项目内。Cook–Levin 源码归档随仓库提供，启动脚本先校验 SHA-256 再解包。已装好工具链时，主检查可离线运行。[启动脚本及固定版本](scripts/bootstrap.py)
+- **Apple Silicon Mac**：可先运行 `python3 scripts/bootstrap.py --local-lean`，脚本会把固定版本的 Lean 编译器下载并校验后安装到项目局部的 `.toolchain/` 目录中。
+- **离线运行**：随仓已提供上游 Cook–Levin 源码归档，[bootstrap.py](scripts/bootstrap.py) 会在解包前校验 SHA-256。工具链安装完成后，主检查可全程离线执行。
+- **检查流程说明**：[check.sh](scripts/check.sh) 依次执行 `bootstrap.py`、`lake build`、公理审计 `lake env lean Audit.lean`、输入拼接检查 `lake env lean experiments/EncodedCuts.lean`，以及 [experiments/](experiments/) 下的全部标准库 Python 检验脚本。
+- **公理审计说明**：[Audit.lean](Audit.lean) 仅导入实现模块（见 [Mobius.lean](Mobius.lean)），只允许 Lean 标准三公理（`propext`、`Classical.choice`、`Quot.sound`）。如前所述，四比特一般独立双表的 **282 全局下界**及 `Gap266` 仍依赖书面证明与精确 Python 证书，尚未全部进入 Lean。
 
-`check.sh` 构建全部 Lean 模块，审计 `Mobius` 和所导入 `Complexity` 声明的传递公理，再运行标准库 Python 实验。公理审计允许 `propext`、`Classical.choice`、`Quot.sound`。一般双表的 **282 全局下界**由书面论证和精确有限计算共同支持，它的完整证明尚未全部移入 Lean。上游 ETH 算法和 Singh 的 Mathlib 工程有各自的验证入口。[主检查](scripts/check.sh) · [Lean 模块入口](Mobius.lean) · [公理审计](Audit.lean)
+## 目录与来源
 
-## 当前的模型边界
+- [Mobius/](Mobius/) 与 [Mobius.lean](Mobius.lean)、[Audit.lean](Audit.lean)：全部 114 个 Lean 4 形式化模块、总入口与传递公理审计。
+- [experiments/](experiments/)：包含 [EncodedCuts.lean](experiments/EncodedCuts.lean) 及只用 Python 标准库的可复算组合检验、整数证书与模拟器脚本。
+- [docs/](docs/)：各子课题的详细推导与核查笔记，建议从以下几篇读起：
+  - [docs/2026-11-23.md](docs/2026-11-23.md)：研究主线汇总与各分支之间的衔接关系。
+  - [docs/Priority.md](docs/Priority.md)：前人文献归属、原文页码与各定理的验证状态。
+  - [docs/ResearchNotes.md](docs/ResearchNotes.md)：从证明回路、受限模型到四比特障碍的完整研究笔记。
+  - [docs/HourResults.md](docs/HourResults.md)：四比特 256/282、五比特与 1521 底数等定量结论摘要。
+- [vendor/](vendor/)：随附 Robert D. Barish 的 Lean 4 Cook–Levin 与计时图灵机形式化源码归档 [npcomplete-3e603e79.tar.gz](vendor/npcomplete-3e603e79.tar.gz)，固定至上游提交 [`3e603e79`](https://github.com/RBarish-UTokyo/NPCompleteness-Lean4/tree/3e603e795b44fedcf7d6dd65b7d1e30547ead925)，保留上游 Apache-2.0 许可证。
+- [LICENSE](LICENSE)：本项目采用 Apache-2.0 许可证。
 
-方格上的反相线目标同时有可任意复用的纯电路指数下界和有减法的多项式电路。当前需要解释一般布尔算法的位操作与共享内存能否被某种仍有下界的接口高效模拟。单带线上，输入布局的逐切口正例区分计数已经达到它在该编码上的渐近上限；更强结论需要额外的运行约束。[可复用电路](docs/ReusableCircuits.md) · [真实单带机](docs/NextStep.md)
+## 直觉起源与探索方向
 
-## 文件与来源
-
-- [完整研究记录](docs/ResearchNotes.md) 保留了从证明回路、受限模型到 ETH 构造的原始推导。[结果摘要](docs/HourResults.md) 汇总了定量结论。
-- [Lean 模块](Mobius/) 与[有限实验](experiments/) 分别提供内核定理和可重验的计算证书。
-- 计时图灵机和 Cook–Levin 基础取自 Robert D. Barish 的项目，固定到提交 `3e603e79`。随附归档保留上游 Apache-2.0 许可证。[上游固定源码](https://github.com/RBarish-UTokyo/NPCompleteness-Lean4/tree/3e603e795b44fedcf7d6dd65b7d1e30547ead925)
+- **直觉起源**：项目最初来自一个朴素的类比——从“停机问题里的自指成环”联想到莫比乌斯环“沿圈走一圈回到原点时正反面互换”的结构，想尝试把 3-SAT 的证明思路也写成类似翻面回路的形式。随后在与 AI 一起往下推进时，为了把想法落到可以具体算清楚的代数对象上，引入了“十六平方问题”的符号障碍（即前文四比特双符号表与方形约束中绕不开的 $1/15$ 失败率）。
+- **核心猜想与推进思路**：整体设想是把计算复杂度问题翻译成几何或组合对象自身的性质——先不直接去碰“任意一般算法”，而是检验这类共享表项的几何/组合结构里，是否存在一种躲不掉的**一般性内在代价**：
+  - 一类是局部与全局之间的“粘贴/挫败差”。记同一对符号表 $T$ 下第 $i$ 块的代价为 $f_i(T)$，即对比“各块各自取局部最优之和”与“共用同一对全局表时的共同最优”之间的差值 $\min_T\sum_i f_i(T)-\sum_i\min_T f_i(T)$（例如四比特 $K_4$ 中 2 与 3 的分离、共享轴双扇中 $p\ge 14$ 时中央板被迫让步）；
+  - 另一类是跨块预知冲突时必须保留的信息代价（例如平行三维面成环所需检验的异或位数，以及宽接口合并、非边查询等场景下不得不传递的通信或记忆位数）。
+- **对具体算法手段的逐项检验**：一旦找到候选的内在代价，就接着测试缓存、中间结果复用、线性异或消元、允许减法或增加工作带等具体计算手段，看它们能不能消去或绕开这些代价（例如允许减法就可以绕开网格上的 $\min,+$ 电路下界，增加一条独立工作带就可以绕开单带机时间下界）。至于这种代价能否进一步覆盖更强的计算模型，目前仍处于试探性的探索阶段，没有现成结论。
