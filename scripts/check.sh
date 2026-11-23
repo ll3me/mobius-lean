@@ -32,3 +32,9 @@ python3 experiments/tropical_controls.py
 python3 experiments/crossing_controls.py
 python3 experiments/unary_sat.py --self-test
 python3 experiments/recognized_gadgets.py
+python3 experiments/overlap_fibers.py
+python3 experiments/double_fan.py
+python3 experiments/whole_board_matching.py
+python3 experiments/axis_relations.py
+python3 experiments/full_board_caps.py
+python3 experiments/port_gap.py
