@@ -1,0 +1,13 @@
+{"version": "1.2.0",
+ "packagesDir": ".lake/packages",
+ "packages":
+ [{"type": "path",
+   "scope": "",
+   "name": "«np-completeness»",
+   "manifestFile": "lake-manifest.json",
+   "inherited": false,
+   "dir": ".deps/npcomplete",
+   "configFile": "lakefile.toml"}],
+ "name": "«proof-seams»",
+ "lakeDir": ".lake",
+ "fixedToolchain": false}

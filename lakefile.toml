@@ -1,0 +1,10 @@
+name = "proof-seams"
+version = "0.1.0"
+defaultTargets = ["Mobius"]
+
+[[lean_lib]]
+name = "Mobius"
+
+[[require]]
+name = "np-completeness"
+path = ".deps/npcomplete"

@@ -1,0 +1,24 @@
+#!/bin/sh
+set -eu
+cd "$(dirname "$0")/.."
+python3 scripts/bootstrap.py
+if [ -x .toolchain/bin/lake ]; then
+  PATH="$PWD/.toolchain/bin:$PATH"
+  export PATH
+fi
+lean --version
+lake build
+lake env lean Audit.lean
+python3 experiments/sign_obstruction.py
+python3 experiments/two_phases.py
+python3 experiments/contractions.py
+python3 experiments/direction_laws.py 6
+python3 experiments/optimal_support.py
+python3 experiments/optimal_residual.py
+python3 experiments/second_weight.py
+python3 experiments/locked_rank_curve.py
+python3 experiments/five_slices.py
+python3 experiments/five_collisions.py
+python3 experiments/five_margins.py
+python3 experiments/rank_symplectic.py
+python3 experiments/naslund_slices.py
