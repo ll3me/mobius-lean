@@ -23,3 +23,8 @@ python3 experiments/five_collisions.py
 python3 experiments/five_margins.py
 python3 experiments/rank_symplectic.py
 python3 experiments/naslund_slices.py
+python3 experiments/port_geometry.py
+python3 experiments/one_in_three_geometry.py
+python3 experiments/cubic_ports.py
+python3 experiments/port_cut.py
+python3 experiments/port_k4.py

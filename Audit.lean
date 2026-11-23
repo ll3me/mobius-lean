@@ -79,3 +79,33 @@ run_cmd do
 #print axioms Mobius.BoundaryBooleanRate.optimal_error_direction
 #print axioms Mobius.BoundaryBooleanRate.sharp_threshold
 #print axioms Mobius.BoundaryBooleanRate.sharp_all_decoders
+
+#print axioms Mobius.OneInThree.defect_gauge
+#print axioms Mobius.OneInThree.extends_iff_odd
+#print axioms Mobius.OneInThree.minimum_one_iff_exactlyOne
+#print axioms Mobius.OneInThree.extends_not_iff
+#print axioms Mobius.OneInThree.not_minimum_cost
+#print axioms Mobius.OneInThree.extends_pin_iff
+#print axioms Mobius.OneInThree.not_tiles_clean
+#print axioms Mobius.PortGeometry.chart_injective
+#print axioms Mobius.PortGeometry.station_contact
+#print axioms Mobius.PortGeometry.contact_after_embedding
+#print axioms Mobius.PortNetworkCost.sharp_local_cost
+#print axioms Mobius.PortNetworkCost.cubic_threshold
+
+#print axioms Mobius.PortCycle.edge_minimum
+#print axioms Mobius.PortCycle.cycle_parity
+#print axioms Mobius.PortCycle.cycle_minimum
+
+#print axioms Mobius.FourBitPortCut.sparse_minimum
+#print axioms Mobius.FourBitPortCut.board_optimum_profile
+#print axioms Mobius.FourBitPortCut.best_among_board_optima
+#print axioms Mobius.FourBitPortCut.near_witness
+#print axioms Mobius.PortGraphGeometry.overlap
+#print axioms Mobius.PortGraphGeometry.placed_corners
+#print axioms Mobius.PortGraph.edgewise_extension
+#print axioms Mobius.PortGraph.actual_maxCut
+
+#print axioms Mobius.PortGraph.selected_distinct
+#print axioms Mobius.PortGraph.selected_length
+#print axioms Mobius.PortCutEdits.minimum_hamming

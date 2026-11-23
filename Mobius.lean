@@ -12,10 +12,17 @@ import Mobius.Duality
 import Mobius.EightGroups
 import Mobius.EightSquare
 import Mobius.EthSwap
+import Mobius.PortCutEdits
+import Mobius.FourBitPortCut
 import Mobius.FixedCutRank
 import Mobius.Inclusion
 import Mobius.MixedCuts
 import Mobius.Naturality
+import Mobius.OneInThree
+import Mobius.PortGraph
+import Mobius.PortCycle
+import Mobius.PortGeometry
+import Mobius.PortNetworkCost
 import Mobius.OptimalCertificate
 import Mobius.ParityWindow
 import Mobius.Pullback
