@@ -18,7 +18,9 @@ Research, Lean 4 formalization, and initial notes in this repository were develo
 
 **Side controls & reproductions (not new lower bounds):** To test which algorithmic ingredients bypass these obstructions, the repository also reproduces or transfers several known restricted-model lower bounds onto these board encodings—single-tape Turing machines ($\Omega_M(N^{3/2})$), subtraction-free $\min,+$ tropical circuits ($2^{\Omega(b)}$), nFBDD/DNNF, syntactic read-$r$-times branching programs, and two-party communication—paired with explicit bypass controls (linear-time two-tape machines and polynomial-size circuits with subtraction).
 
-## Pair contraction for Hamiltonian cycle detection (2026-11-24)
+**How many full boards must miss their optimum?** For a simple graph with $v$ vertices and $e$ edges, the construction uses $B=8v+57e$ unweighted boards. The minimum number of nonoptimal boards over one shared pair of tables equals the fewest vertices whose deletion makes the graph three-colorable. OpenAI family 106 then gives an NP-hard gap between zero and more than $v/2$ nonoptimal boards, at least $\sqrt{B/114}$ in the negative case. The general result has a written proof. Direct table checks and SAT verify minima of 1 for $K_4$ and 2 for $K_5$. [Proof and source](docs/FaceMultiplicity.md#color-deletion) · [Reproduce the checks](experiments/color_deletion.py)
+
+## Pair contraction for Hamiltonian cycle detection (as of 2026-11-25)
 
 Let $H_n$ decide whether a loopless directed graph on $n$ vertices contains a Hamiltonian cycle. In the board encoding, each arc switch occupies one coordinate bit. A single pair of global tables makes every board optimal exactly when $H_n=1$. For $n=2m$, choose an oriented pairing $\rho=((a_i,b_i))_{i=1}^m$. Open each $a_i\to b_i$, leave $b_i\to a_j$ free for $i\ne j$, and close every other arc. Each tour must traverse each pair consecutively. Contracting the pairs leaves exactly $H_m$ on all smaller graphs. [Board encoding](docs/HamiltonianBoards.md) · [Pairing construction](docs/PairContraction.md)
 
@@ -39,7 +41,13 @@ The eight-vertex experiment tracks 392 shared gates whose values vary among stro
 
 Across all 1,680 pairings, the first implementation always leaves 33 gates. The best pairing for the second leaves 2,400. The original Held–Karp circuit uses 2,260 gates in the same basis, so both measured circuits exceed the minimum size for the function. [Gate-by-gate results](docs/JointNegativeContraction.md#八点实例的同一份配对) · [Held–Karp gate count](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Python check](experiments/negative_gate_loss.py)
 
-**The $1/4$ survival bound for general circuits remains open.** Let $s$ be the minimum size for $H_{2m}$ and write $E=s-4m^2$. To leave at most $\lfloor s/4\rfloor$ gates, the proven bound needs at most $\max(0,\lceil3E/4\rceil-m+2)$ additional deletions. The value of $s$ is unknown. The open step is to show that exact optimality forces enough deeper shared gates or their consumers to disappear under one pairing. [Gap calculation](docs/JointNegativeContraction.md#四分之一还差多少) · [Counting shared gates and their consumers](docs/JointNegativeContraction.md#一份配对同时向源门和消费者收取多少代价)
+**The $1/4$ size bound for general circuits remains open.** Let $s$ be the minimum size for $H_{2m}$ and write $E=s-4m^2$. Starting from the proven $R_0$ bound, a further saving of $\max(0,\lceil3E/4\rceil-m+2)$ gates suffices to reach $\lfloor s/4\rfloor$. The revised conjecture also counts savings from merging signals after the same pairing. The value of $s$ is unknown. [Gap calculation](docs/JointNegativeContraction.md#四分之一还差多少) · [Counting shared gates and their consumers](docs/JointNegativeContraction.md#一份配对同时向源门和消费者收取多少代价) · [Revised conjecture](#weak-pair-contraction-conjecture)
+
+A fixed AND of $d$ distinct arc bits avoids being forced to zero under a uniform pairing with probability at most $C(d+1)^{1/4}4^{-\sqrt d}$, including when arcs share heads or tails. This counts the outputs of a prescribed set of conjunctions under one pairing. [Proof, tight example and enumeration](docs/PairContraction.md#general-arc-support)
+
+On one pairing of an eight-vertex closed-walk inclusion–exclusion circuit, $R_+$ leaves 3,726 gates. Two additional passes that read only the Boolean wiring leave 2,701 gates with an eight-monomial budget per wire and 2,606 with eight decision nodes. Both agree with Hamiltonian cycle detection on all 4,096 smaller graphs. This source circuit exceeds the minimum size. [Experiment and gate counts](docs/SignedCircuitSweeps.md)
+
+**Proved local $1/4$ bound.** Consider a nonempty collection of gate-disjoint minimum parity regions on raw arc inputs, each with only its output available to the rest of the circuit. A separate reconstruction that chooses the output polarity uses less than one quarter of the regions’ original gate count on one common pairing. For this estimate alone to guarantee a quarter for the entire eight-vertex circuit, such regions must cover at least $21/22$ of its original gates. The measured coverage in the inclusion–exclusion source circuit is zero. [Conditions and proof](docs/SignedCircuitSweeps.md) · [Open conjecture for general circuits](#weak-pair-contraction-conjecture)
 
 ### Proven contraction for semantic read-1 circuits
 
@@ -60,31 +68,31 @@ Sengupta and Venkateswaran used this witness condition for bipartite perfect mat
 
 ### Pair-contraction conjectures (open)
 
-Fix a gate basis and let $S(n)$ be the minimum size of a circuit for $H_n$ in that basis. Let $r(m)$ be the least surviving fraction $\lvert R_0(C\vert_\rho)\rvert/\lvert C\rvert$ over **exactly minimum-size** circuits $C$ for $H_{2m}$ and oriented pairings $\rho$. At each size, one such circuit and one pairing suffice. The same pairing must preserve $H_m$ on every smaller input. Thus $S(m)\le r(m)S(2m)$. [Pairing and optimality quantifiers](docs/PairContraction.md#2-最优单调电路的逐级检验)
+The general Boolean conjectures use $R_+$ (revised 2026-11-25). For the same restricted circuit $D=C\vert_\rho$, $R_+$ keeps the smallest of three circuits. The first is $R_0(D)$. The second adds rewrites on windows of up to three gates. The third also recognizes fixed XOR and XNOR patterns and simplifies affine expressions over $\mathbb F_2$. Each candidate is priced in AND/OR/NOT gates, including any new gates used to implement XOR. Since each candidate computes $H_m$ on every smaller input, $S(m)\le\lvert R_+(D)\rvert\le\lvert R_0(D)\rvert$, where $S(n)$ is the minimum AND/OR/NOT size of $H_n$. [Operator definition and example](docs/PairContraction.md#boolean-contraction-operator)
 
 <a name="weak-pair-contraction-conjecture"></a>
 
 #### Weak pair-contraction conjecture (fixed fraction)
 
-**General Boolean circuits.** For every sufficiently large $m$, the conjecture is $r(m)\le 1/4$. This would give $S(2m)\ge 4S(m)$, compatible with $S(n)=\Theta(n^2)$. [Gap from the proven bound](docs/JointNegativeContraction.md#四分之一还差多少)
+**General Boolean circuits.** Let $r_+(m)$ be the minimum of $\lvert R_+(C\vert_\rho)\rvert/S(2m)$ over **exactly minimum-size** circuits $C$ for $H_{2m}$ and oriented pairings $\rho$. The weak conjecture is $r_+(m)\le 1/4$ for every sufficiently large $m$. One circuit and one pairing per size suffice. This would give $S(2m)\ge 4S(m)$, compatible with $S(n)=\Theta(n^2)$. [Gap from the proven bound](docs/JointNegativeContraction.md#四分之一还差多少)
 
-An exactly minimum circuit also obeys a bound on all gates that take a fixed value on the strongly connected graphs with a cycle cover and no Hamiltonian cycle. If $T$ gates test strong connectivity and cycle-cover existence, these gates have at most $T+2$ extra uses and paid negations in total, even when they depend on one another. Exact optimality matters. A family of size $(1+o(1))S(n)$ leaves strictly more than one quarter of its gates under **every** pairing at infinitely many powers of two. [Whole-circuit bound](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean replay lemma](Mobius/PairContraction.lean#L406) · [Near-optimal counterexample](docs/StagedContraction.md)
+An exactly minimum circuit also obeys a bound on all gates that take a fixed value on the strongly connected graphs with a cycle cover and no Hamiltonian cycle. If $T$ gates test strong connectivity and cycle-cover existence, these gates have at most $T+2$ extra uses and paid negations in total, even when they depend on one another. For the $R_0$ baseline, a family of size $(1+o(1))S(n)$ leaves strictly more than one quarter of its gates under **every** pairing at infinitely many powers of two. [Whole-circuit bound](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean replay lemma](Mobius/PairContraction.lean#L406) · [Near-optimal counterexample](docs/StagedContraction.md)
 
-**Original monotone version.** Taking the minimum over all AND/OR circuits, with repeated arcs allowed in every accepting proof, the conjecture is $r_{\rm mono}(m)\le 1/2$ for every sufficiently large $m$. This would give $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$. Each basis has its own set of optimal circuits. [Monotone conjecture](docs/PairContraction.md#原创性可证伪的下一步及复核)
+**Original monotone version.** Here $r_{\rm mono}(m)$ uses $R_0$ and takes the minimum over exactly optimal AND/OR circuits and oriented pairings, with repeated arcs allowed in accepting proofs. The conjecture is $r_{\rm mono}(m)\le 1/2$ for every sufficiently large $m$. This would give $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$. [Monotone conjecture](docs/PairContraction.md#原创性可证伪的下一步及复核)
 
 <a name="strong-pair-contraction-conjecture"></a>
 
-#### Strong pair-contraction conjecture (general Boolean circuits, survival tends to zero)
+#### Strong pair-contraction conjecture (general Boolean circuits, output-size ratio tends to zero)
 
 Let $\mathrm{Opt}_{\rm bool}(2m)$ be the set of all minimum-size AND/OR/NOT circuits for $H_{2m}$. The strong conjecture asserts
 
 $$
 \lim_{m\to\infty}
 \min_{C\in\mathrm{Opt}_{\rm bool}(2m)}\min_{\rho}
-\frac{\lvert R_0(C\vert_\rho)\rvert}{\lvert C\rvert}=0.
+\frac{\lvert R_+(C\vert_\rho)\rvert}{S(2m)}=0.
 $$
 
-For every $\epsilon>0$ and every sufficiently large $m$ (depending on $\epsilon$), some exactly optimal $C$ and some oriented pairing leave at most $\epsilon\lvert C\rvert$ gates. The fraction of the original gates that survive tends to zero. The residual circuit still computes $H_m$ on every smaller input.
+Equivalently, $r_+(m)\to0$. For every $\epsilon>0$ and every sufficiently large $m$ (depending on $\epsilon$), some exactly optimal $C$ and one oriented pairing give an $R_+$ output of at most $\epsilon S(2m)$ gates on the whole $H_m$ input cube.
 
 Taking $\epsilon=1/4$ gives the general Boolean weak conjecture. For any fixed $d>0$, taking $\epsilon=2^{-(d+1)}$ would give $S(2m)\ge 2^{d+1}S(m)$ at every sufficiently large scale. Iterating along powers of two rules out $S(n)=O(n^d)$ for every $d$. Since the input has $n(n-1)$ bits, directed Hamiltonian cycle detection would have no polynomial-size circuit family. This would imply $\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm{P}\ne\mathrm{NP}$. [Doubling argument](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Karp's NP-completeness theorem, problem 9](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf) · [Polynomial-time circuit simulation, Thm. 13.12](https://files.boazbarak.org/introtcs/lnotes_book.pdf)
 

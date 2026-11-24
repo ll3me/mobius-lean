@@ -55,6 +55,10 @@ $$ \prod_v d_v\le 2^{\sum_v(d_v-1)}\le 2^t. $$
 
 故最低项的算术下界、乃至首次两个回路相遇的系数，在一个普通多项式时间问题上也原样出现。上节对 $q+r+\log_2(T+1)$ 的不等式照样适用于这个 P 中的函数，包括特征二。用这些层本身的复杂度推出**所有**确定性判定器的时间下界，会把上述多项式时间函数也排除。仍待证明的是对每个多项式预算，为什么总有正例使通用搜索器无法在预算内找到第一份见证。[固定通用搜索器的逐级目标](HybridMatching.md#面向全部算法的一台固定搜索器)
 
+## 接受输入凸包的半正定表示
+
+令 $P_m$ 为全部可接受弧开关串的凸包，$m\ge3$。每个接受串至少开放 $m$ 条弧，恰开 $m$ 条时这些弧组成一条全圈。因此 $\sum_e x_e=m$ 截出有向巡回多面体。将每对反向弧投影为 $z_{ij}=x_{ij}+x_{ji}$，这个面的像恰是对称旅行商多面体，因为每条无向全圈都能定向。取面和作线性投影都保留已有精确实半正定提升的矩阵阶数上界。Kriebel 已将 OpenAI 第 126 族推论 1.2 的匹配下界转给对称旅行商多面体，故 $P_m$ 的任何精确实半正定提升也需要 $2^{\Omega(m)}$ 阶。每个开关只占一个板坐标位，补入其余固定位就得到该板族的接受字串凸包。这里计整份表示的矩阵阶数。指数界引用手稿，上游 Lean 对标定理证明了超多项式界，板上的转移为书面推论。[第 126 族推论 1.2](https://github.com/openai/math/blob/f5702854040e97fa7675c21ba37a9608f5f92dd3/preprints/Exponential-PSD-rank-of-positively-shifted-matching-matrices-October-5-2026/shifted-matching-psd.pdf) · [Kriebel 的旅行商推论及归约出处](https://aleckriebel.com/research/exact-semidefinite-tsp/) · [上游 Lean 范围](https://github.com/openai/math/blob/f5702854040e97fa7675c21ba37a9608f5f92dd3/lean/docs/126.md)
+
 ## 复核范围
 
 在允许程序自适应询问“同一份环覆盖能否容纳这些弧”后，一个有 $k$ 个公共点的构造保留了单次运行权衡。每次最多可指定扩大图顶点数六分之一的弧，记录代价只按不同联合回答数计算。[对任意查询宽度的转移与反例](CycleCoverQueries.md)

@@ -343,6 +343,46 @@ def check_supports(m):
           f'max survival by width: {[str(maxima[d]) for d in sorted(maxima)]}')
 
 
+def check_arbitrary_supports():
+    pool = list(pairings(3))
+    counts = Counter()
+    for fixed, free in map(allowed, pool):
+        possible = sorted(fixed | free)
+        for d in range(1, len(possible) + 1):
+            counts.update(combinations(possible, d))
+
+    for support, count in counts.items():
+        neighbors = {}
+        for u, v in support:
+            neighbors.setdefault(u, set()).add(v)
+            neighbors.setdefault(v, set()).add(u)
+        vertices = len(neighbors)
+        unseen = set(neighbors)
+        components = 0
+        while unseen:
+            components += 1
+            stack = [unseen.pop()]
+            while stack:
+                new = neighbors[stack.pop()] & unseen
+                unseen.difference_update(new)
+                stack.extend(new)
+        assert 4 * len(support) <= (vertices - components + 1)**2
+        assert count * comb(vertices, vertices//2) <= len(pool) * 2**components
+    assert len(counts) == 44_400
+
+    # Two tails times two heads. Compare R0 on the actual AND gates to the
+    # probability of the prescribed colors followed by avoiding all four mates.
+    m = 4
+    dag = Circuit(2*m)
+    output = dag.fold('and', (dag.inputs[u, v] for u in (0, 1) for v in (2, 3)))
+    pool = list(pairings(m))
+    survivors = sum(dag.contract(pairs)[1][output] != 0 for pairs in pool)
+    expected = Fraction(comb(2*m-4, m-2), comb(2*m, m)) * Fraction(comb(m-2, 2), comb(m, 2))
+    assert Fraction(survivors, len(pool)) == expected
+    print(f'{len(counts)} nonempty six-vertex supports; four-arc AND survives '
+          f'{survivors}/{len(pool)} eight-vertex pairings')
+
+
 def one_tour(permutation):
     successor = dict(permutation)
     path, u = set(), 0
@@ -434,6 +474,7 @@ if __name__ == '__main__':
     check_graphs(3)
     check_levels()
     check_supports(3)
+    check_arbitrary_supports()
     check_midpoints(4)
     for half in (2, 3, 4):
         check_circuits(half)

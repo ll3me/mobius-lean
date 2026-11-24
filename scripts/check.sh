@@ -10,6 +10,7 @@ lean --version
 lake build
 lake env lean Audit.lean
 lake env lean experiments/EncodedCuts.lean
+lake env lean experiments/HamiltonianAffineCut.lean
 python3 experiments/sign_obstruction.py
 python3 experiments/two_phases.py
 python3 experiments/contractions.py
@@ -45,12 +46,14 @@ python3 experiments/three_face_profiles.py
 python3 experiments/common_core_signatures.py
 python3 experiments/free_direction_coloring.py
 python3 experiments/face_multiplicity.py
+python3 experiments/color_deletion.py
 python3 experiments/hybrid_matching_boards.py
 python3 experiments/determinant_matching.py
 python3 experiments/hamiltonian_boards.py
 python3 experiments/cycle_cover_queries.py
 python3 experiments/postread_switches.py
 python3 experiments/paired_contraction.py
+python3 experiments/signed_tour_sweep.py
 python3 experiments/paired_fanout.py
 python3 experiments/oriented_contraction.py
 python3 experiments/staged_contraction.py

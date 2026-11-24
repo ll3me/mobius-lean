@@ -18,7 +18,9 @@
 
 **顺带做的对照与复现（不算新下界）：** 仓库还把几类文献里已有的受限计算模型下界（单带图灵机 $\Omega_M(N^{3/2})$、无减法 $\min,+$ 热带电路 $2^{\Omega(b)}$、nFBDD/DNNF、读 $r$ 次分支程序、两方通信）复现或搬运到了这套板输入编码上，并配了双带线性时间、带减法多项式最大流电路等反面对照——主要用来测这套障碍在加了哪些算法手段后会被绕开。
 
-## 哈密顿回路判定的配对收缩（2026-11-24）
+**至少有几张完整板必须偏离最优？** 从有 $v$ 个顶点、$e$ 条边的简单图构造 $B=8v+57e$ 张无权板。让同一对全局表作用于所有板，最少坏板数恰为使原图可三着色所需的最少删点数。由 OpenAI 第 106 族，区分零张坏板和超过 $v/2$ 张坏板是 NP 困难的，负例的损失至少为 $\sqrt{B/114}$ 张。一般等式有书面证明。逐格计分给出了 $K_4$ 坏 1 张、$K_5$ 坏 2 张的全局表，SAT 检查排除了更小的坏板数。[证明与出处](docs/FaceMultiplicity.md#color-deletion) · [复算脚本](experiments/color_deletion.py)
+
+## 哈密顿回路判定的配对收缩（截至 2026-11-25）
 
 记 $H_n$ 为 $n$ 点无自环有向图的哈密顿回路判定。在板网编码中，每条弧的开关占一个原始坐标位。同一对全局表能让所有板同时最优，当且仅当 $H_n=1$。取 $n=2m$，把顶点分成有向点对 $\rho=((a_i,b_i))_{i=1}^m$。固定开放每条 $a_i\to b_i$，让 $i\ne j$ 的 $b_i\to a_j$ 自由开关，其余弧全部关闭。全圈必须连续走完每一对，缩点后恰好保留所有小图上的 $H_m$。[板网编码](docs/HamiltonianBoards.md) · [配对构造](docs/PairContraction.md)
 
@@ -39,7 +41,13 @@
 
 遍历全部 1,680 种配对，第一种实现每次都剩 33 门，第二种最少剩 2,400 门。同一门基里的原始 Held–Karp 实现只需 2,260 门，因此表中两份电路都严格大于最小规模。[逐门记录](docs/JointNegativeContraction.md#八点实例的同一份配对) · [Held–Karp 门数公式](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Python 复核](experiments/negative_gate_loss.py)
 
-**一般电路的 $1/4$ 存活率仍开放。** 设 $s$ 为 $H_{2m}$ 的最小门数，$E=s-4m^2$。要使剩余门数至多为 $\lfloor s/4\rfloor$，从已证界出发，最多还需证明能再删 $\max(0,\lceil3E/4\rceil-m+2)$ 门。$s$ 的实际大小未知。剩下的问题是，精确最优性是否迫使足够多的深层共享门或读取它们的门，在同一份配对下消失。[缺口推导](docs/JointNegativeContraction.md#四分之一还差多少) · [共享门与消费者的计数](docs/JointNegativeContraction.md#一份配对同时向源门和消费者收取多少代价)
+**一般电路的 $1/4$ 规模界仍开放。** 设 $s$ 为 $H_{2m}$ 的最小门数，$E=s-4m^2$。从 $R_0$ 的已证界出发，再省 $\max(0,\lceil3E/4\rceil-m+2)$ 扇门就足以达到 $\lfloor s/4\rfloor$。修订后的猜想也计入同一配对下合并信号所节省的门数。$s$ 的实际大小未知。[缺口推导](docs/JointNegativeContraction.md#四分之一还差多少) · [共享门与消费者的计数](docs/JointNegativeContraction.md#一份配对同时向源门和消费者收取多少代价) · [修订后的猜想](#weak-pair-contraction-conjecture)
+
+对 $d$ 个不同原弧位的固定合取，即使弧共用头或尾，均匀配对后合取未化零的概率也至多为 $C(d+1)^{1/4}4^{-\sqrt d}$。这能在同一份配对下对一批预先指定的合取输出计数。[证明、紧例与穷举](docs/PairContraction.md#general-arc-support)
+
+八点哈密顿闭合游走容斥电路固定一份配对后，$R_+$ 留下 3,726 门。只从连线识别等价信号的额外候选分别留下 2,701 门（每线八个单项式）和 2,606 门（每线八个决策结点），在全部 4,096 个小图上判定正确。该源电路已知大于最优规模。[实验与逐门计费](docs/SignedCircuitSweeps.md)
+
+**已证的局部 $1/4$。** 对一批内部门互不重叠、只读原弧、仅出口可供外部使用的最优奇偶区域，同一配对下按正负相位重建，合计成本可低于这些区域原门数的 $1/4$（原门数非零）。单靠这条估计，要把八点电路的总门数压到四分之一，区域须覆盖至少 $21/22$ 的原门。上述八点容斥源电路中实际识别到的覆盖率为零。[条件与证明](docs/SignedCircuitSweeps.md) · [一般电路的开放猜想](#weak-pair-contraction-conjecture)
 
 ### 已证的语义 read-1 电路收缩定理
 
@@ -60,31 +68,31 @@ Sengupta 和 Venkateswaran 在 1994 年研究二分完美匹配时已用过“�
 
 ### 配对收缩猜想（均开放）
 
-固定门基，记 $S(n)$ 为该门基下计算 $H_n$ 的最小门数。让 $C$ 遍历计算 $H_{2m}$ 的**精确最优电路**，$\rho$ 遍历有向配对，记 $r(m)$ 为实际存活比例 $\lvert R_0(C\vert_\rho)\rvert/\lvert C\rvert$ 的最小值。每个规模只须找到一份这样的电路和一个配对，选定的配对须对所有小图输入保留完整的 $H_m$。因此 $S(m)\le r(m)S(2m)$。[配对定义与最优电路的量词](docs/PairContraction.md#2-最优单调电路的逐级检验)
+一般布尔猜想采用 $R_+$（2026-11-25 修订）。对同一份已代入配对的电路 $D=C\vert_\rho$，从三个结果中取门数最少者。第一项是 $R_0(D)$。第二项再化简至多三门的窗口。第三项在第二项上识别固定的 XOR、XNOR 模式，并在 $\mathbb F_2$ 上化简仿射表达式。三个结果都按 AND/OR/NOT 门计价，重建 XOR 所用的门也计入总数。记 $S(n)$ 为 $H_n$ 在此门基上的最小规模。每个候选在全部小图输入上都计算 $H_m$，故 $S(m)\le\lvert R_+(D)\rvert\le\lvert R_0(D)\rvert$。[算子定义与例子](docs/PairContraction.md#boolean-contraction-operator)
 
 <a name="weak-pair-contraction-conjecture"></a>
 
 #### 弱配对收缩猜想（固定存活比例）
 
-**一般布尔版。** 猜想对每个充分大的 $m$ 有 $r(m)\le1/4$。若成立，就有 $S(2m)\ge4S(m)$，仍与 $S(n)=\Theta(n^2)$ 相容。[当前界与猜想的差距](docs/JointNegativeContraction.md#四分之一还差多少)
+**一般布尔版。** 在计算 $H_{2m}$ 的**精确最优电路** $C$ 和有向配对 $\rho$ 中，取 $\lvert R_+(C\vert_\rho)\rvert/S(2m)$ 的最小值，记为 $r_+(m)$。弱猜想要求所有充分大的 $m$ 有 $r_+(m)\le1/4$。每个规模只须找到一份电路和一份配对。若成立，就有 $S(2m)\ge4S(m)$，与 $S(n)=\Theta(n^2)$ 相容。[当前界与猜想的差距](docs/JointNegativeContraction.md#四分之一还差多少)
 
-对精确最优电路，还可约束整张图上的共享。若 $T$ 扇门足以检查强连通与有向环覆盖，那么所有在“强连通、有覆盖、无全圈”的图上各取固定值的内部门，其额外出线数与其中的 NOT 门数合计至多 $T+2$，允许这些门彼此依赖。最优性也有反例检验。存在大小为 $(1+o(1))S(n)$ 的电路族，在无穷多个二次幂规模上，**每种**配对都严格留下超过四分之一的门。[全图共享界](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean 重放引理](Mobius/PairContraction.lean#L406) · [近最优反例](docs/StagedContraction.md)
+对精确最优电路，还可约束整张图上的共享。若 $T$ 扇门足以检查强连通与有向环覆盖，那么所有在“强连通、有覆盖、无全圈”的图上各取固定值的内部门，其额外出线数与其中的 NOT 门数合计至多 $T+2$，允许这些门彼此依赖。对基线 $R_0$，存在大小为 $(1+o(1))S(n)$ 的电路族，在无穷多个二次幂规模上，**每种**配对都严格留下超过四分之一的门。[全图共享界](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean 重放引理](Mobius/PairContraction.lean#L406) · [近最优反例](docs/StagedContraction.md)
 
-**原有的单调版。** 在全部 AND/OR 电路中取最优，允许每份接受证明重复用弧。猜想对每个充分大的 $m$ 有 $r_{\rm mono}(m)\le 1/2$，从而 $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$。两种门基各自取最优电路。[单调猜想原文](docs/PairContraction.md#原创性可证伪的下一步及复核)
+**原有的单调版。** $r_{\rm mono}(m)$ 使用 $R_0$，在精确最优的 AND/OR 电路和有向配对中取最小值，允许每份接受证明重复用弧。猜想对每个充分大的 $m$ 有 $r_{\rm mono}(m)\le 1/2$，从而 $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$。[单调猜想原文](docs/PairContraction.md#原创性可证伪的下一步及复核)
 
 <a name="strong-pair-contraction-conjecture"></a>
 
-#### 强配对收缩猜想（一般布尔电路，存活率趋于零）
+#### 强配对收缩猜想（一般布尔电路，输出规模比例趋于零）
 
 记 $\mathrm{Opt}_{\rm bool}(2m)$ 为计算 $H_{2m}$ 的全部门数最少的 AND/OR/NOT 电路。强猜想断言
 
 $$
 \lim_{m\to\infty}
 \min_{C\in\mathrm{Opt}_{\rm bool}(2m)}\min_{\rho}
-\frac{\lvert R_0(C\vert_\rho)\rvert}{\lvert C\rvert}=0.
+\frac{\lvert R_+(C\vert_\rho)\rvert}{S(2m)}=0.
 $$
 
-任给 $\epsilon>0$，从某个依赖于 $\epsilon$ 的规模起，每个 $m$ 都有一份精确最优电路 $C$ 和一个有向配对，使实际剩余门数至多为 $\epsilon\lvert C\rvert$。趋于零的是剩余门数占原门数的比例。剩余电路仍须在全部小图输入上计算 $H_m$。
+等价地，$r_+(m)\to0$。任给 $\epsilon>0$，从某个依赖于 $\epsilon$ 的规模起，每个 $m$ 都有一份精确最优电路 $C$ 和一份有向配对，使 $R_+$ 输出的电路至多用 $\epsilon S(2m)$ 扇门，在全部小图输入上计算 $H_m$。
 
 取 $\epsilon=1/4$ 就得到一般布尔弱版。对任意固定的 $d>0$，取 $\epsilon=2^{-(d+1)}$，则所有充分大的 $m$ 都有 $S(2m)\ge 2^{d+1}S(m)$。沿二次幂规模迭代，即可排除 $S(n)=O(n^d)$。由于输入有 $n(n-1)$ 位，有向哈密顿回路判定将没有多项式规模电路族。这将推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm{P}\ne\mathrm{NP}$。[倍增推导](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Karp 的 NP 完全性定理，第 9 项](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf) · [多项式时间的电路模拟，定理 13.12](https://files.boazbarak.org/introtcs/lnotes_book.pdf)
 
