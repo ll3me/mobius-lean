@@ -1,10 +1,18 @@
 # Mobius: Lean 4 Experiments on 4-Bit Sign-Table Obstructions and Computational Complexity
 
-**English** | [中文](README.zh-CN.md) · [Pair-contraction summary](#pair-contraction-summary) · [Weak pair-contraction conjecture](#weak-pair-contraction-conjecture) · [Strong pair-contraction conjecture](#strong-pair-contraction-conjecture)
+**English** | [中文](README.zh-CN.md) · [Fixed-margin conjecture](#fixed-margin-conjecture) · [Pair-contraction summary](#pair-contraction-summary) · [Weak conjecture](#weak-pair-contraction-conjecture) · [Strong conjecture](#strong-pair-contraction-conjecture)
 
 > I am not a professional mathematician, but seeing AI prove the Riemann Hypothesis left me both thrilled and uneasy. With leftover subscription quota about to expire, I decided to try my luck pulling gacha in computational complexity. Unfortunately, I know almost nothing about the field, so I could only push the work forward on simple intuitions. Whether what came out has any real significance isn't something I care too much about.
 
 Research, Lean 4 formalization, and initial notes in this repository were developed with GPT 6.2-Astra. As of 2026/11/24, work on this repository has used approximately 1.03B tokens.
+
+<a id="fixed-margin-conjecture"></a>
+
+## The $1/4-\sigma$ pair-contraction conjecture for the whole circuit (open)
+
+Does there exist a constant $0<\sigma<1/4$, **independent of size**, such that for every sufficiently large $m$ there is an exactly minimum AND/OR/NOT circuit for directed Hamiltonian cycle detection on $2m$ vertices and a pairing that preserves the full $m$-vertex problem, for which the specified simplifier $R_+$ outputs at most $(1/4-\sigma)$ times the original gate count? The circuit allows unlimited reuse, and the restriction must give the correct answer on every smaller graph. [Quantifiers and rewrite rules](docs/PairContraction.md#boolean-contraction-operator)
+
+A proof would give a gate lower bound of $\Omega(N^{1+\delta})$ in the $N=n(n-1)$ input arc bits, with $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$. The proved reconstruction for single-output parity regions has a size-dependent margin $\sigma_m=1/(8m-4)$ and measures their combined gate count. The whole-circuit fixed-margin conjecture lies between the weak quarter bound and the strong conjecture that the ratio tends to zero. [Doubling argument](docs/MultiplicativeGap.md#fixed-quarter-margin) · [Local theorem and coverage](docs/SignedCircuitSweeps.md)
 
 ## TL;DR & Verification Status
 
@@ -47,7 +55,7 @@ A fixed AND of $d$ distinct arc bits avoids being forced to zero under a uniform
 
 On one pairing of an eight-vertex closed-walk inclusion–exclusion circuit, $R_+$ leaves 3,726 gates. Two additional passes that read only the Boolean wiring leave 2,701 gates with an eight-monomial budget per wire and 2,606 with eight decision nodes. Both agree with Hamiltonian cycle detection on all 4,096 smaller graphs. This source circuit exceeds the minimum size. [Experiment and gate counts](docs/SignedCircuitSweeps.md)
 
-**Proved local $1/4$ bound.** Consider a nonempty collection of gate-disjoint minimum parity regions on raw arc inputs, each with only its output available to the rest of the circuit. A separate reconstruction that chooses the output polarity uses less than one quarter of the regions’ original gate count on one common pairing. For this estimate alone to guarantee a quarter for the entire eight-vertex circuit, such regions must cover at least $21/22$ of its original gates. The measured coverage in the inclusion–exclusion source circuit is zero. [Conditions and proof](docs/SignedCircuitSweeps.md) · [Open conjecture for general circuits](#weak-pair-contraction-conjecture)
+**Proved local bound.** Consider a nonempty collection of gate-disjoint minimum parity regions on raw arc inputs, each with only its output available to the rest of the circuit. On one common pairing, a separate reconstruction that chooses the output polarity uses at most $p_m=(m-1)/(4m-2)=1/4-1/(8m-4)$ times their original gate count. For eight vertices, $p_4=3/14$. For this estimate alone to guarantee a quarter for the entire circuit, such regions must cover at least $21/22$ of its gates. The measured coverage in the inclusion–exclusion source circuit is zero. [Conditions and proof](docs/SignedCircuitSweeps.md)
 
 ### Proven contraction for semantic read-1 circuits
 

@@ -31,7 +31,7 @@ $R_+(D)$ 选门数最少的候选，同数时依 $D_0,D_3,D_a$ 的顺序取首�
 
 $$S(m)\le |R_+(C\vert_\rho)|\le |R_0(C\vert_\rho)|.$$
 
-对精确最优的 $C$ 和有向配对 $\rho$ 取最小，记所得输出规模与 $S(2m)$ 之比为 $r_+(m)$。弱猜想要求所有充分大的 $m$ 有 $r_+(m)\le1/4$，强猜想要求 $r_+(m)\to0$。已证的 $R_0$ 剩余规模上界由上式直接适用。仓库的近最优反例和逐门实验计量的是 $R_0$。[弱、强猜想及其推论](../README.zh-CN.md#pair-contraction-conjecture) · [$R_0$ 近最优反例](StagedContraction.md#一个额外的-not-能让原门在每种配对下全部保留)
+对精确最优的 $C$ 和有向配对 $\rho$ 取最小，记所得输出规模与 $S(2m)$ 之比为 $r_+(m)$。弱猜想要求所有充分大的 $m$ 有 $r_+(m)\le1/4$。固定余量猜想要求对同一个常数 $0<\sigma<1/4$，所有充分大的 $m$ 都有 $r_+(m)\le1/4-\sigma$。强猜想要求 $r_+(m)\to0$。已证的 $R_0$ 剩余规模上界由上式直接适用。仓库的近最优反例和逐门实验计量的是 $R_0$。[固定余量与输入长度的推导](MultiplicativeGap.md#fixed-quarter-margin) · [弱、强猜想及其推论](../README.zh-CN.md#pair-contraction-conjecture) · [$R_0$ 近最优反例](StagedContraction.md#一个额外的-not-能让原门在每种配对下全部保留)
 
 例如，将三位多数电路 $(x\lor y)\land(z\lor(x\land y))$ 的 $z$ 置零，留下两个独立自由位。$R_0$ 给出三门的 $(x\lor y)\land(x\land y)$。这一整个窗口的真值表等于 $x\land y$，所以 $R_+$ 只留一门。
 

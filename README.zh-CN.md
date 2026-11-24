@@ -1,10 +1,18 @@
 # Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-[English](README.md) | **中文** · [配对收缩阶段小结](#pair-contraction-summary) · [弱配对收缩猜想](#weak-pair-contraction-conjecture) · [强配对收缩猜想](#strong-pair-contraction-conjecture)
+[English](README.md) | **中文** · [固定余量猜想](#fixed-margin-conjecture) · [配对收缩阶段小结](#pair-contraction-summary) · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture)
 
 > 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
 本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。本仓库截止目前（2026/11/24）花费约1.03B token。
+
+<a id="fixed-margin-conjecture"></a>
+
+## 整张布尔电路的 $1/4-\sigma$ 配对收缩猜想（开放）
+
+是否存在一个**与规模无关**的常数 $0<\sigma<1/4$，使每个充分大的 $m$ 都有一份判定 $2m$ 点有向哈密顿回路的精确最优 AND/OR/NOT 电路，以及一份保留完整 $m$ 点问题的配对，使写定的化简器 $R_+$ 输出至多 $(1/4-\sigma)$ 倍的原门数？电路允许任意共享，配对后对每张 $m$ 点小图都须判对。[量词与化简规则](docs/PairContraction.md#boolean-contraction-operator)
+
+若成立，按 $N=n(n-1)$ 个原始弧位计，最少门数将达到 $\Omega(N^{1+\delta})$，其中 $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$。已证的单出口奇偶区域重建有随规模变小的余量 $\sigma_m=1/(8m-4)$，计的是这些区域合计的门数。整图固定余量界是弱猜想 $1/4$ 和强猜想「比例趋零」之间的目标。[倍增推导](docs/MultiplicativeGap.md#fixed-quarter-margin) · [局部定理与覆盖率](docs/SignedCircuitSweeps.md)
 
 ## 省流 / 实测情况
 
@@ -47,7 +55,7 @@
 
 八点哈密顿闭合游走容斥电路固定一份配对后，$R_+$ 留下 3,726 门。只从连线识别等价信号的额外候选分别留下 2,701 门（每线八个单项式）和 2,606 门（每线八个决策结点），在全部 4,096 个小图上判定正确。该源电路已知大于最优规模。[实验与逐门计费](docs/SignedCircuitSweeps.md)
 
-**已证的局部 $1/4$。** 对一批内部门互不重叠、只读原弧、仅出口可供外部使用的最优奇偶区域，同一配对下按正负相位重建，合计成本可低于这些区域原门数的 $1/4$（原门数非零）。单靠这条估计，要把八点电路的总门数压到四分之一，区域须覆盖至少 $21/22$ 的原门。上述八点容斥源电路中实际识别到的覆盖率为零。[条件与证明](docs/SignedCircuitSweeps.md) · [一般电路的开放猜想](#weak-pair-contraction-conjecture)
+**已证的局部界。** 对一批内部门互不重叠、只读原弧、仅出口可供外部使用的最优奇偶区域，同一配对下按正负相位重建，合计成本至多是这些区域原门数的 $p_m=(m-1)/(4m-2)=1/4-1/(8m-4)$ 倍。八点缩四点时 $p_4=3/14$。单靠这条估计，要把整张八点电路压到四分之一，区域须覆盖至少 $21/22$ 的原门。上述容斥源电路的实测覆盖率为零。[条件与证明](docs/SignedCircuitSweeps.md)
 
 ### 已证的语义 read-1 电路收缩定理
 
