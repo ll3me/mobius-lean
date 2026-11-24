@@ -1,18 +1,34 @@
 # Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-[English](README.md) | **中文** · [固定余量猜想](#fixed-margin-conjecture) · [配对收缩阶段小结](#pair-contraction-summary) · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture)
+[English](README.md) | **中文** · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture) · [固定余量猜想](#fixed-margin-conjecture) · [配对收缩阶段小结](#pair-contraction-summary)
 
 > 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
 本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。本仓库截止目前（2026/11/24）花费约1.03B token。
 
+<a name="pair-contraction-conjecture"></a>
+
+## 哈密顿回路判定中配对收缩的弱猜想与强猜想（开放）
+
+设 $H_n$ 判定一张 $n$ 点无自环有向图是否含哈密顿回路，$S(n)$ 是允许任意共享的 AND/OR/NOT 电路计算 $H_n$ 所需的最少门数。每份有向配对 $\rho$ 都把 $H_{2m}$ 限制为完整的 $H_m$。在所有计算 $H_{2m}$ 的**精确最优电路** $C$ 和所有这样的配对中，取化简后门数与原门数之比的最小值 $r_+(m)=\min_{C,\rho}\lvert R_+(C\vert_\rho)\rvert/S(2m)$。[配对定义](docs/PairContraction.md) · [化简器 $R_+$](docs/PairContraction.md#boolean-contraction-operator)
+
+<a name="weak-pair-contraction-conjecture"></a>
+
+### 弱猜想（化简后门数至多为原来的四分之一）
+
+对每个充分大的 $m$，都有 $r_+(m)\le 1/4$。也就是说，每个规模只须找到一份精确最优电路和一份配对，就能用至多 $S(2m)/4$ 扇门判对全部 $m$ 点图。若成立，则 $S(2m)\ge 4S(m)$，仍与 $S(n)=\Theta(n^2)$ 相容。[距四分之一还差多少](docs/JointNegativeContraction.md#四分之一还差多少) · [单调弱版的二分之一门槛](#monotone-pair-contraction-conjecture)
+
+<a name="strong-pair-contraction-conjecture"></a>
+
+### 强猜想（化简后门数占原门数的比例趋于零）
+
+$r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\ge m_0(\epsilon)$ 都有一份精确最优电路和一份配对，化简后至多用 $\epsilon S(2m)$ 扇门判对全部 $m$ 点图。若成立，$H_n$ 就没有多项式规模的布尔电路族，进而推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$ 和 $\mathrm{P}\ne\mathrm{NP}$。[倍增推导与出处](#pair-contraction-doubling)
+
 <a id="fixed-margin-conjecture"></a>
 
-## 整张布尔电路的 $1/4-\sigma$ 配对收缩猜想（开放）
+### 两者之间的固定余量猜想（$1/4-\sigma$）
 
-是否存在一个**与规模无关**的常数 $0<\sigma<1/4$，使每个充分大的 $m$ 都有一份判定 $2m$ 点有向哈密顿回路的精确最优 AND/OR/NOT 电路，以及一份保留完整 $m$ 点问题的配对，使写定的化简器 $R_+$ 输出至多 $(1/4-\sigma)$ 倍的原门数？电路允许任意共享，配对后对每张 $m$ 点小图都须判对。[量词与化简规则](docs/PairContraction.md#boolean-contraction-operator)
-
-若成立，按 $N=n(n-1)$ 个原始弧位计，最少门数将达到 $\Omega(N^{1+\delta})$，其中 $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$。已证的单出口奇偶区域重建有随规模变小的余量 $\sigma_m=1/(8m-4)$，计的是这些区域合计的门数。整图固定余量界是弱猜想 $1/4$ 和强猜想「比例趋零」之间的目标。[倍增推导](docs/MultiplicativeGap.md#fixed-quarter-margin) · [局部定理与覆盖率](docs/SignedCircuitSweeps.md)
+存在一个**与规模无关**的 $0<\sigma<1/4$，使每个充分大的 $m$ 都有 $r_+(m)\le 1/4-\sigma$。强猜想推出固定余量猜想，固定余量猜想又推出弱猜想。按 $N=n(n-1)$ 个输入弧位计，固定余量将给出 $S(n)=\Omega(N^{1+\delta})$，其中 $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$。已证的单出口奇偶区域重建只对这些区域的合计门数给出余量 $\sigma_m=1/(8m-4)$，它随 $m$ 趋零。[固定余量的推导](docs/MultiplicativeGap.md#fixed-quarter-margin) · [局部定理与覆盖率](docs/SignedCircuitSweeps.md)
 
 ## 省流 / 实测情况
 
@@ -72,39 +88,21 @@ $$
 
 Sengupta 和 Venkateswaran 在 1994 年研究二分完美匹配时已用过“每个极小正例至少有一份无重复证明”这一条件。结合 Jukna 的 read-1 刻画、Jerrum–Snir 下界和 Held–Karp 上界，已有结果即给出哈密顿回路判定在本模型中的最小门数 $\Theta(n^2 2^n)$。本项目进一步计量指定的局部化简会从每份最优电路实际删去多少门。[Sengupta–Venkateswaran 定理 5.3](https://repository.gatech.edu/server/api/core/bitstreams/908c7751-3664-4150-ae9d-737d3383470f/content) · [Jukna 定理 1、2](https://arxiv.org/html/2207.08701v3) · [Jerrum–Snir §4.4](https://snir.cs.illinois.edu/listed/J7.pdf#page=16) · [Held–Karp](https://doi.org/10.1137/0110015)
 
-<a name="pair-contraction-conjecture"></a>
+<a id="pair-contraction-doubling"></a>
 
-### 配对收缩猜想（均开放）
+### 配对后的门数与倍增推导
 
 一般布尔猜想采用 $R_+$（2026-11-25 修订）。对同一份已代入配对的电路 $D=C\vert_\rho$，从三个结果中取门数最少者。第一项是 $R_0(D)$。第二项再化简至多三门的窗口。第三项在第二项上识别固定的 XOR、XNOR 模式，并在 $\mathbb F_2$ 上化简仿射表达式。三个结果都按 AND/OR/NOT 门计价，重建 XOR 所用的门也计入总数。记 $S(n)$ 为 $H_n$ 在此门基上的最小规模。每个候选在全部小图输入上都计算 $H_m$，故 $S(m)\le\lvert R_+(D)\rvert\le\lvert R_0(D)\rvert$。[算子定义与例子](docs/PairContraction.md#boolean-contraction-operator)
 
-<a name="weak-pair-contraction-conjecture"></a>
-
-#### 弱配对收缩猜想（固定存活比例）
-
-**一般布尔版。** 在计算 $H_{2m}$ 的**精确最优电路** $C$ 和有向配对 $\rho$ 中，取 $\lvert R_+(C\vert_\rho)\rvert/S(2m)$ 的最小值，记为 $r_+(m)$。弱猜想要求所有充分大的 $m$ 有 $r_+(m)\le1/4$。每个规模只须找到一份电路和一份配对。若成立，就有 $S(2m)\ge4S(m)$，与 $S(n)=\Theta(n^2)$ 相容。[当前界与猜想的差距](docs/JointNegativeContraction.md#四分之一还差多少)
+若强猜想成立，对任意固定的 $d>0$，取 $\epsilon=2^{-(d+1)}$，则所有充分大的 $m$ 都有 $S(2m)\ge 2^{d+1}S(m)$。沿二次幂规模迭代，即可排除 $S(n)=O(n^d)$。由于输入有 $n(n-1)$ 位，有向哈密顿回路判定将没有多项式规模电路族。这将推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm{P}\ne\mathrm{NP}$。[倍增推导](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Karp 的 NP 完全性定理，第 9 项](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf) · [多项式时间的电路模拟，定理 13.12](https://files.boazbarak.org/introtcs/lnotes_book.pdf)
 
 对精确最优电路，还可约束整张图上的共享。若 $T$ 扇门足以检查强连通与有向环覆盖，那么所有在“强连通、有覆盖、无全圈”的图上各取固定值的内部门，其额外出线数与其中的 NOT 门数合计至多 $T+2$，允许这些门彼此依赖。对基线 $R_0$，存在大小为 $(1+o(1))S(n)$ 的电路族，在无穷多个二次幂规模上，**每种**配对都严格留下超过四分之一的门。[全图共享界](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean 重放引理](Mobius/PairContraction.lean#L406) · [近最优反例](docs/StagedContraction.md)
 
-**原有的单调版。** $r_{\rm mono}(m)$ 使用 $R_0$，在精确最优的 AND/OR 电路和有向配对中取最小值，允许每份接受证明重复用弧。猜想对每个充分大的 $m$ 有 $r_{\rm mono}(m)\le 1/2$，从而 $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$。[单调猜想原文](docs/PairContraction.md#原创性可证伪的下一步及复核)
-
-<a name="strong-pair-contraction-conjecture"></a>
-
-#### 强配对收缩猜想（一般布尔电路，输出规模比例趋于零）
-
-记 $\mathrm{Opt}_{\rm bool}(2m)$ 为计算 $H_{2m}$ 的全部门数最少的 AND/OR/NOT 电路。强猜想断言
-
-$$
-\lim_{m\to\infty}
-\min_{C\in\mathrm{Opt}_{\rm bool}(2m)}\min_{\rho}
-\frac{\lvert R_+(C\vert_\rho)\rvert}{S(2m)}=0.
-$$
-
-等价地，$r_+(m)\to0$。任给 $\epsilon>0$，从某个依赖于 $\epsilon$ 的规模起，每个 $m$ 都有一份精确最优电路 $C$ 和一份有向配对，使 $R_+$ 输出的电路至多用 $\epsilon S(2m)$ 扇门，在全部小图输入上计算 $H_m$。
-
-取 $\epsilon=1/4$ 就得到一般布尔弱版。对任意固定的 $d>0$，取 $\epsilon=2^{-(d+1)}$，则所有充分大的 $m$ 都有 $S(2m)\ge 2^{d+1}S(m)$。沿二次幂规模迭代，即可排除 $S(n)=O(n^d)$。由于输入有 $n(n-1)$ 位，有向哈密顿回路判定将没有多项式规模电路族。这将推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm{P}\ne\mathrm{NP}$。[倍增推导](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Karp 的 NP 完全性定理，第 9 项](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf) · [多项式时间的电路模拟，定理 13.12](https://files.boazbarak.org/introtcs/lnotes_book.pdf)
-
 ### 受限模型中的证据
+
+<a id="monotone-pair-contraction-conjecture"></a>
+
+**原有的单调版。** $r_{\rm mono}(m)$ 使用 $R_0$，在精确最优的 AND/OR 电路和有向配对中取最小值，允许每份接受证明重复用弧。猜想对每个充分大的 $m$ 有 $r_{\rm mono}(m)\le 1/2$，从而 $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$。[单调猜想原文](docs/PairContraction.md#原创性可证伪的下一步及复核)
 
 每份门数为 $s$ 的精确最优单调电路，其内部门输出在首次使用以外至少还有 $(1/7-o(1))s$ 次引用。若一份配对能使其中正常数比例的额外引用所读的门同时变成零，出线计数就给出固定倍数的收缩。要达到单调版的一半，还须定量控制同一份配对实际消去的门数。[计数证明](docs/InternalSharing.md) · [证明所用的 Rao 匹配下界](https://homes.cs.washington.edu/~anuprao/pubs/matchinglowerbound.pdf#page=2)
 
