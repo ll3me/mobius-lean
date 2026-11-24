@@ -1,10 +1,10 @@
 # Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-[English](README.md) | **中文**
+[English](README.md) | **中文** · [配对收缩阶段小结](#pair-contraction-summary) · [弱配对收缩猜想](#weak-pair-contraction-conjecture) · [强配对收缩猜想](#strong-pair-contraction-conjecture)
 
 > 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
-本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。
+本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。本仓库截止目前（2026/11/24）花费约1.03B token。
 
 ## 省流 / 实测情况
 
@@ -14,9 +14,91 @@
 
 1. **四比特独立双表的组合刚性、间隙与局部/全局冲突**：把经典的单表 $1/15$ 障碍推到任意两张独立符号表，证明 3,840 个条件中最少失败 256 次且所有失败集中在唯一方向，精确数出全部 $15\cdot 2^{62}$ 对最优解并分类其残差；给出次小失败数 **282**（排除 257–281），并造出共享表项下“局部最优必须给全局最优让步”的具体例子（$K_4$ 的 78 面上 2 对 3 的分离、双扇结构 $p\ge 14$ 时被迫牺牲中央板）。
 2. **完整四维板 / 方形约束的 NP 完全归约与 3-SAT 边界接口**：用 15 方形矛盾证书造出“反相线”和“恰一真”门，把图三着色、正文字 1-in-3 SAT 和 Max-Cut 编进同一对全局符号表，证明“仅给四维板基向量、判定能否逐板同时最优”是 NP 完全的；并在普通 3-CNF 上证明固定双表边界求和“1 次必有真假碰撞、2 次恰好够恢复精确 `#SAT`”，7,680 项测试集的阈值判错数精确等于抵消失败数。
-3. **一套零 `sorry`、可一键复现的 Lean 4 形式化库**：[Mobius/](Mobius/) 下共 114 个 Lean 4 模块（23,362 行），外加仅依赖 Python 标准库的组合检验脚本。[Audit.lean](Audit.lean) 对 5,974 个 `Mobius` 声明和 3,933 个上游 `Complexity` 声明做了传递公理审计：零 `sorry`、零自定义公理、零 `native_decide`，所有定理仅依赖 Lean 4 标准三公理（`propext`、`Classical.choice`、`Quot.sound`）。
+3. **可复现的 Lean 4 证明与 Python 核验。** `Mobius/` 下共 122 个模块，24,633 行，配有使用 Python 标准库的核验脚本。传递公理审计覆盖 6,383 个项目声明和 3,933 个上游 `Complexity` 声明，其证明只依赖 Lean 的标准公理 `propext`、`Classical.choice`、`Quot.sound`。项目模块中 `sorry` 和 `native_decide` 的使用次数均为零。[模块](Mobius/) · [公理审计](Audit.lean)
 
 **顺带做的对照与复现（不算新下界）：** 仓库还把几类文献里已有的受限计算模型下界（单带图灵机 $\Omega_M(N^{3/2})$、无减法 $\min,+$ 热带电路 $2^{\Omega(b)}$、nFBDD/DNNF、读 $r$ 次分支程序、两方通信）复现或搬运到了这套板输入编码上，并配了双带线性时间、带减法多项式最大流电路等反面对照——主要用来测这套障碍在加了哪些算法手段后会被绕开。
+
+## 哈密顿回路判定的配对收缩（2026-11-24）
+
+记 $H_n$ 为 $n$ 点无自环有向图的哈密顿回路判定。在板网编码中，每条弧的开关占一个原始坐标位。同一对全局表能让所有板同时最优，当且仅当 $H_n=1$。取 $n=2m$，把顶点分成有向点对 $\rho=((a_i,b_i))_{i=1}^m$。固定开放每条 $a_i\to b_i$，让 $i\ne j$ 的 $b_i\to a_j$ 自由开关，其余弧全部关闭。全圈必须连续走完每一对，缩点后恰好保留所有小图上的 $H_m$。[板网编码](docs/HamiltonianBoards.md) · [配对构造](docs/PairContraction.md)
+
+单调电路使用二输入 AND、OR。这里的一般布尔电路还允许一输入 NOT。每扇门计一次，扇出不限，输入、常量和连线免费。代入配对后，$R_0$ 传播常量，把操作数相同的 AND/OR 门和双重取反接回原线，按运算和操作数合并相同门（允许交换两个输入），最后删除无法通往输出的门。[化简规则](docs/PairContraction.md#1-计数和化简算子)
+
+<a name="pair-contraction-summary"></a>
+
+### 配对收缩阶段小结
+
+对 $m\ge3$ 和每份计算 $H_{2m}$ 的精确最优 AND/OR/NOT 电路，都存在一份配对，使 $R_0$ **至少删去 $3m^2+m-2$ 扇门**，同时在全部小图输入上保留 $H_m$。每份配对固定 $3m^2-m$ 个弧位，最优性保证至少 $2m-2$ 个不同弧位有额外引用。能把这些引用一起计入删门数，是因为任意预先指定的 $2m+1$ 个弧位都可由一份配对同时固定。合计只读这些弧位的共享门也会一起化为常量。这个数是紧的，存在 $2m+2$ 个弧位，每种配对都留其中至少一位自由。一般规模的结论有书面证明，Lean 已核验出线计数和重放等价。[共同配对与删门证明](docs/JointNegativeContraction.md) · [Lean 出线计数](Mobius/PairContraction.lean#L312) · [Lean 重放引理](Mobius/PairContraction.lean#L406)
+
+八点实验用同一份预定配对追踪 392 扇共享门。每扇门都能区分两张强连通、有环覆盖、却无全圈的图。第二种实现先让每个弧位经过一段在所有输入上都返回原位值的电路，再接入相同的计算。
+
+| 八点电路 | 原门数 | 392 扇中化为常量 | 剩余总门数 | 四分之一准许剩余 |
+| --- | ---: | ---: | ---: | ---: |
+| Held–Karp 的德摩根对偶 | 2,317 | 374 | 33 | 579 |
+| 接入恒等输入代理的同一电路 | 2,483 | 0 | 2,400 | 620 |
+
+遍历全部 1,680 种配对，第一种实现每次都剩 33 门，第二种最少剩 2,400 门。同一门基里的原始 Held–Karp 实现只需 2,260 门，因此表中两份电路都严格大于最小规模。[逐门记录](docs/JointNegativeContraction.md#八点实例的同一份配对) · [Held–Karp 门数公式](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Python 复核](experiments/negative_gate_loss.py)
+
+**一般电路的 $1/4$ 存活率仍开放。** 设 $s$ 为 $H_{2m}$ 的最小门数，$E=s-4m^2$。要使剩余门数至多为 $\lfloor s/4\rfloor$，从已证界出发，最多还需证明能再删 $\max(0,\lceil3E/4\rceil-m+2)$ 门。$s$ 的实际大小未知。剩下的问题是，精确最优性是否迫使足够多的深层共享门或读取它们的门，在同一份配对下消失。[缺口推导](docs/JointNegativeContraction.md#四分之一还差多少) · [共享门与消费者的计数](docs/JointNegativeContraction.md#一份配对同时向源门和消费者收取多少代价)
+
+### 已证的语义 read-1 电路收缩定理
+
+在只开一条全圈的输入上，一份接受证明在 OR 门选一个为真的操作数，在 AND 门取两个操作数。证明每次引用一扇共享门，都将它展开一次。语义 read-1 要求每条全圈至少有一份证明，恰好用一次圈上的每条弧。对每个充分大的偶数 $n$ 和**这个类中每一份门数最少的电路 $C$**，在所有有向配对上均匀取平均，有
+
+$$
+\frac{\mathbb E_\rho\!\left[\lvert R_0(C\vert_\rho)\rvert\right]}{\lvert C\rvert}
+\le \exp\!\left[-\Omega\!\left(\frac{\log n}{\log\log n}\right)\right].
+$$
+
+分子是这份原电路实际剩下的门数的平均值。每扇门的各个单项式使用固定的弧尾集合和弧头集合。配对一旦让两者不相容，该门就变为零。靠近输出时，证明按各门的单项式还能怎样补成全圈来分组。若从这些门往上有太多延伸门或额外引用，重组就会得到一份更小的电路，与最优性矛盾。渐近定理已有书面证明。Lean 核验了配对必要条件、补项重组等式和出线计数。Python 枚举了四、六、八点的全部配对。四点的一份最优电路有 20 扇门，12 份配对各自都只留一扇。[书面证明](docs/ReadOneContraction.md) · [Lean 引理](Mobius/PairContraction.lean) · [枚举程序](experiments/read_one_contraction.py)
+
+枚举脚本使用至多五份预定配对。进一步的书面推论将清单缩到四份，保证其中一份删去至少 $(1/28-o(1))\lvert C\rvert$ 扇门。对偶数 $n\ge 6$，模 $n$ 步长为 $+1,+2$ 的无向边构成连通的四正则 Cayley 图。由 Bermond、Favaron 和 Mahéo 的定理，它可以分为两条哈密顿圈。两条偶圈各自交替取边，恢复每条弧原来的朝向，共得四份配对，再用内部门引用计数即可。[四正则图分解原文](https://www.sciencedirect.com/science/article/pii/0095895689900403) · [内部门引用计数](docs/InternalSharing.md)
+
+Sengupta 和 Venkateswaran 在 1994 年研究二分完美匹配时已用过“每个极小正例至少有一份无重复证明”这一条件。结合 Jukna 的 read-1 刻画、Jerrum–Snir 下界和 Held–Karp 上界，已有结果即给出哈密顿回路判定在本模型中的最小门数 $\Theta(n^2 2^n)$。本项目进一步计量指定的局部化简会从每份最优电路实际删去多少门。[Sengupta–Venkateswaran 定理 5.3](https://repository.gatech.edu/server/api/core/bitstreams/908c7751-3664-4150-ae9d-737d3383470f/content) · [Jukna 定理 1、2](https://arxiv.org/html/2207.08701v3) · [Jerrum–Snir §4.4](https://snir.cs.illinois.edu/listed/J7.pdf#page=16) · [Held–Karp](https://doi.org/10.1137/0110015)
+
+<a name="pair-contraction-conjecture"></a>
+
+### 配对收缩猜想（均开放）
+
+固定门基，记 $S(n)$ 为该门基下计算 $H_n$ 的最小门数。让 $C$ 遍历计算 $H_{2m}$ 的**精确最优电路**，$\rho$ 遍历有向配对，记 $r(m)$ 为实际存活比例 $\lvert R_0(C\vert_\rho)\rvert/\lvert C\rvert$ 的最小值。每个规模只须找到一份这样的电路和一个配对，选定的配对须对所有小图输入保留完整的 $H_m$。因此 $S(m)\le r(m)S(2m)$。[配对定义与最优电路的量词](docs/PairContraction.md#2-最优单调电路的逐级检验)
+
+<a name="weak-pair-contraction-conjecture"></a>
+
+#### 弱配对收缩猜想（固定存活比例）
+
+**一般布尔版。** 猜想对每个充分大的 $m$ 有 $r(m)\le1/4$。若成立，就有 $S(2m)\ge4S(m)$，仍与 $S(n)=\Theta(n^2)$ 相容。[当前界与猜想的差距](docs/JointNegativeContraction.md#四分之一还差多少)
+
+对精确最优电路，还可约束整张图上的共享。若 $T$ 扇门足以检查强连通与有向环覆盖，那么所有在“强连通、有覆盖、无全圈”的图上各取固定值的内部门，其额外出线数与其中的 NOT 门数合计至多 $T+2$，允许这些门彼此依赖。最优性也有反例检验。存在大小为 $(1+o(1))S(n)$ 的电路族，在无穷多个二次幂规模上，**每种**配对都严格留下超过四分之一的门。[全图共享界](docs/JointNegativeContraction.md#全图中不区分这些负例的共享量) · [Lean 重放引理](Mobius/PairContraction.lean#L406) · [近最优反例](docs/StagedContraction.md)
+
+**原有的单调版。** 在全部 AND/OR 电路中取最优，允许每份接受证明重复用弧。猜想对每个充分大的 $m$ 有 $r_{\rm mono}(m)\le 1/2$，从而 $S_{\rm mono}(2m)\ge 2S_{\rm mono}(m)$。两种门基各自取最优电路。[单调猜想原文](docs/PairContraction.md#原创性可证伪的下一步及复核)
+
+<a name="strong-pair-contraction-conjecture"></a>
+
+#### 强配对收缩猜想（一般布尔电路，存活率趋于零）
+
+记 $\mathrm{Opt}_{\rm bool}(2m)$ 为计算 $H_{2m}$ 的全部门数最少的 AND/OR/NOT 电路。强猜想断言
+
+$$
+\lim_{m\to\infty}
+\min_{C\in\mathrm{Opt}_{\rm bool}(2m)}\min_{\rho}
+\frac{\lvert R_0(C\vert_\rho)\rvert}{\lvert C\rvert}=0.
+$$
+
+任给 $\epsilon>0$，从某个依赖于 $\epsilon$ 的规模起，每个 $m$ 都有一份精确最优电路 $C$ 和一个有向配对，使实际剩余门数至多为 $\epsilon\lvert C\rvert$。趋于零的是剩余门数占原门数的比例。剩余电路仍须在全部小图输入上计算 $H_m$。
+
+取 $\epsilon=1/4$ 就得到一般布尔弱版。对任意固定的 $d>0$，取 $\epsilon=2^{-(d+1)}$，则所有充分大的 $m$ 都有 $S(2m)\ge 2^{d+1}S(m)$。沿二次幂规模迭代，即可排除 $S(n)=O(n^d)$。由于输入有 $n(n-1)$ 位，有向哈密顿回路判定将没有多项式规模电路族。这将推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm{P}\ne\mathrm{NP}$。[倍增推导](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Karp 的 NP 完全性定理，第 9 项](https://cgi.di.uoa.gr/~sgk/teaching/grad/handouts/karp.pdf) · [多项式时间的电路模拟，定理 13.12](https://files.boazbarak.org/introtcs/lnotes_book.pdf)
+
+### 受限模型中的证据
+
+每份门数为 $s$ 的精确最优单调电路，其内部门输出在首次使用以外至少还有 $(1/7-o(1))s$ 次引用。若一份配对能使其中正常数比例的额外引用所读的门同时变成零，出线计数就给出固定倍数的收缩。要达到单调版的一半，还须定量控制同一份配对实际消去的门数。[计数证明](docs/InternalSharing.md) · [证明所用的 Rao 匹配下界](https://homes.cs.washington.edu/~anuprao/pubs/matchinglowerbound.pdf#page=2)
+
+若每条全圈都有一份证明，其中至多一成的不同弧被重复使用，各弧重复次数不限，则在这个类中，$2m$ 点和 $m$ 点的最小门数之比至少为 $2^{0.0620m-O(\log m)}$。这个数值比较两份分别取到最优的电路。在这个放宽的类里，每份最优电路经 $R_0$ 化简后的平均存活门数占比是否也趋于零，仍待证明。[按路径段缩点的证明](docs/ReadOneContraction.md#每条全圈的见证允许重复一部分弧)
+
+有向环覆盖提供了一个对照。一份覆盖允许含有多个不相交的环，其弧仍然将每个顶点用作一次弧尾、一次弧头。相同配对保留较小的环覆盖问题。另取两层顶点，反向固定一份匹配、正向弧自由，就嵌入了任意二分完美匹配实例，给出所需的 read-1 规模下界。因此，同一个收缩证明也适用于 P 中的判定问题。[read-1 匹配下界](https://arxiv.org/html/2207.08701v3) · [Hopcroft–Karp 匹配算法](https://web.eecs.umich.edu/~pettie/matching/Hopcroft-Karp-bipartite-matching.pdf)
+
+几何上已经能强制一致。对任何一对能使七块法诺板同时最优的全局表，七板的唯一坏方向必为公共芯内的同一个方向。外露面上每份合法的边界赋值又都能用**任意一个**芯内非零方向延拓，所以这个三选一的方向可以预先固定。哈密顿板编码另用标号排除小环。对两端都不是根的每条选中弧，起点标号必须小于终点标号。[共同方向定理](Mobius/ThreeFaceBoards.lean#L189) · [边界延拓充要条件](Mobius/ThreeFaceBoards.lean#L294) · [排除小环的约束](docs/HamiltonianBoards.md)
+
+在 $\ell\ge 2$ 层的三线路板族里，每个顶点已经只有一个后继。即使开关起初全部可用、中间结果可以任意复用，在指定的寄存器模型中，判定这些后继组成一个环还是三个环，最坏也恰需 $\ell-1$ 条指令。配对收缩仍要回答的是，当每点可以有多条候选出弧时，选出一个全圈这一要求能否迫使最优单调电路中的固定比例门在同一份配对下消失。[模型与紧界](docs/PostReadSwitches.md) · [Lean 步数下界](Mobius/PostRead.lean#L215)
 
 ## 主要结果
 
@@ -60,7 +142,7 @@
 
 ## 目录与来源
 
-- [Mobius/](Mobius/) 与 [Mobius.lean](Mobius.lean)、[Audit.lean](Audit.lean)：全部 114 个 Lean 4 形式化模块、总入口与传递公理审计。
+- [Mobius/](Mobius/) 与 [Mobius.lean](Mobius.lean)、[Audit.lean](Audit.lean)：全部 122 个 Lean 4 形式化模块、总入口与传递公理审计。
 - [experiments/](experiments/)：包含 [EncodedCuts.lean](experiments/EncodedCuts.lean) 及只用 Python 标准库的可复算组合检验、整数证书与模拟器脚本。
 - [docs/](docs/)：各子课题的详细推导与核查笔记，建议从以下几篇读起：
   - [docs/2026-11-23.md](docs/2026-11-23.md)：研究主线汇总与各分支之间的衔接关系。

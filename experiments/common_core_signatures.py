@@ -72,6 +72,13 @@ def local_certificate():
         local = project_kernel([decoder[i] for i in ids[station]])
         assert local.remainder(change) == 0
         assert three_sigma(change << (128*station)) == 1
+    # Four row entries fix sigma; two column entries also fix the success
+    # of the square (0,0,P). A purely quotient bad lift is then impossible.
+    sites = (0, 4, 32, 36, 64+4, 64+32)
+    pins = (0, 0, 0, 1, 0, 0)
+    for lift in (None, 0, 1, 2, 3):
+        raw = canonical(lift)
+        assert (tuple(raw >> i & 1 for i in sites) == pins) == (lift != 0)
     for d, g in grounds.items():
         baseline = restrict(g, all_sites)
         assert three_sigma(baseline) == int(d not in q)
@@ -145,8 +152,49 @@ def physical_fan(m, word, query, wanted):
           f'left {word:0{m}b}, query ({query},{wanted}), extension={possible}')
 
 
+def four_face_boundary():
+    # a+b=c+e=3. Both boards meet on the unprescribed station 3.
+    points = (1, 2, 4, 7)
+    lifts = (1, None, 0, None)
+    variables = {}
+    equations = Span()
+
+    def variable(tag, x, y):
+        return 1 << variables.setdefault((tag, x, y), len(variables) + 1)
+
+    for a, b, lift in ((1, 2, 1), (4, 7, 0)):
+        box = chart(0, (1, 2, 4*a, 4*b))
+        for direction, x, y in product(range(1, 16), range(16), range(16)):
+            if x > x ^ direction:
+                continue
+            row = (variable(0, box[x], box[y]) ^ variable(0, box[x^direction], box[y^direction])
+                   ^ variable(1, box[x], box[y^direction]) ^ variable(1, box[x^direction], box[y]))
+            equations.add(row ^ int(direction != (4 ^ lift)))
+
+    change = pack((x >> 2) & ((y >> 2) ^ tag)
+                  for tag, x, y in product(range(2), range(8), range(8)))
+    count = 0
+    for shifts in product(range(2), repeat=4):
+        pinned = Span()
+        pinned.rows = equations.rows.copy()
+        parity = 0
+        for p, lift, shift in zip(points, lifts, shifts):
+            raw = canonical(lift) ^ (change if shift else 0)
+            parity ^= sigma(raw) ^ int(lift not in (None, 0))
+            for tag, x, y in product(range(2), range(8), range(8)):
+                xx, yy = (x & 3) ^ ((x >> 2)*4*p), (y & 3) ^ ((y >> 2)*4*p)
+                bit = (raw >> (64*tag+8*x+y)) & 1
+                pinned.add(variable(tag, xx, yy) ^ bit)
+        possible = 0 not in pinned.rows
+        assert possible == (parity == 0)
+        count += possible
+    assert count == 8
+    print(f'two boards, four prescribed faces: {count}/16 twists extend in the actual square equations')
+
+
 def main():
     local_certificate()
+    four_face_boundary()
     physical_fan(2,2,0,0)
     physical_fan(2,2,0,1)
     physical_fan(3,5,1,1)

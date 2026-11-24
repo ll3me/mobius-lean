@@ -59,6 +59,14 @@ import Mobius.MatrixPromise
 import Mobius.FullBoardMerge
 import Mobius.BoardProgramRestriction
 import Mobius.PinnedGate
+import Mobius.SemanticBoardQuery
+import Mobius.HybridMatching
+import Mobius.SignReadout
+import Mobius.BoardSearchStage
+import Mobius.HamiltonianSlice
+import Mobius.CycleCoverQueries
+import Mobius.PostRead
+import Mobius.PairContraction
 import Mobius.ThreeFaceRealization
 import Mobius.ThreeFaceCompletion
 import Mobius.ThreeFaceMemory

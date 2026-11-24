@@ -23,6 +23,25 @@ theorem xor_bridge (a b c : Bool) :
     (∃ t p q, triangle a t p ∧ triangle b p q ∧ triangle c t q) ↔ c=(a ^^ b) := by
   revert a b c; decide
 
+/-- Retain the six Fano lines other than {d,f,d+f}. Here false denotes
+    the selected quotient point. The other four points lie off that line. -/
+def sixFaces (d f df j dj fj dfj : Bool) :=
+  triangle d j dj ∧ triangle d fj dfj ∧ triangle f j fj ∧
+  triangle f dj dfj ∧ triangle df j dfj ∧ triangle df dj fj
+
+theorem sixFaces_pin (d : Bool) :
+    (∃ f df j dj fj dfj, sixFaces d f df j dj fj dfj) ↔ d=false := by
+  unfold sixFaces
+  revert d; decide
+
+/-- The difference point of the three-line bridge is forced by six more
+    actual projective lines. Each external endpoint occurs only once. -/
+theorem nineFaces_equal (a b : Bool) :
+    (∃ d, (∃ t p q, triangle a t p ∧ triangle b p q ∧ triangle d t q) ∧
+      ∃ f df j dj fj dfj, sixFaces d f df j dj fj dfj) ↔ a=b := by
+  simp only [xor_bridge, sixFaces_pin]
+  revert a b; decide
+
 private theorem bridge_witness (a b : Bool) :
     let t := helper a b
     triangle a t (a ^^ t) ∧ triangle b (a ^^ t) ((a ^^ b) ^^ t) ∧

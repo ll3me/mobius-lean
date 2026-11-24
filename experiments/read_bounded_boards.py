@@ -94,13 +94,19 @@ def circuit(d):
     return dag, products[0][0]
 
 
-class Reduction:
-    def __init__(self, d):
-        self.dag, self.out = circuit(d)
+class PinnedCircuitRows:
+    """Compile a Boolean circuit, pinning either input bits or selected indicator gates."""
+    def __init__(self, dag, out, symbol_gates=None):
+        self.dag, self.out = dag, out
         n = self.dag.inputs
         self.count = 2+2*n
         self.templates = [(0, 0, 1)]  # false=0; true=1
         self.pin_rows = []
+        self.pin_choices = []
+        if symbol_gates is not None:
+            symbol_gates = tuple(tuple(group) for group in symbol_gates)
+            if any(not group for group in symbol_gates):
+                raise ValueError('a symbol needs at least one selectable indicator')
         self.eval_steps = []
         positive = {}
         complements = {0: 1, 1: 0}
@@ -123,11 +129,15 @@ class Reduction:
             positive[i] = on
             complements[on], complements[off] = off, on
             self.templates.append((on, off, 0))
-            self.pin_rows.append(len(self.templates))
-            self.templates.append((off, 0, 0))
+            if symbol_gates is None:
+                self.pin_rows.append(len(self.templates))
+                self.pin_choices.append((off, on))
+                self.templates.append((off, 0, 0))
 
-        # Exclude gates whose result is not connected to the output.
+        # The output and every selectable indicator must retain their defining gates.
         live = {self.out}
+        if symbol_gates is not None:
+            live.update(wire for group in symbol_gates for wire in group)
         for j in reversed(range(n, len(self.dag.ops))):
             if j in live:
                 live.update(self.dag.ops[j][1:])
@@ -146,6 +156,12 @@ class Reduction:
                 self.eval_steps.append(('and', z, left, right, last, a, b))
                 positive[j] = z
         self.answer = positive[self.out]
+        if symbol_gates is not None:
+            for group in symbol_gates:
+                choices = tuple(positive[wire] for wire in group)
+                self.pin_rows.append(len(self.templates))
+                self.pin_choices.append(choices)
+                self.templates.append((choices[0], 0, 0))
         self.templates.append((self.answer, 0, 0))
         # formula_family reserves 19 private core coordinates per row and
         # three further coordinates per cap. It caps v+6m possible ports.
@@ -154,12 +170,14 @@ class Reduction:
         self.board_count = self.count+13*m
         self.threshold = 126*7*m + 128*(self.count+6*m)
 
-    def rows(self, word):
-        if not 0 <= word < 1 << self.dag.inputs:
-            raise ValueError('source word outside the fixed input width')
+    def symbol_rows(self, symbols):
+        if len(symbols) != len(self.pin_rows):
+            raise ValueError('wrong number of input symbols')
         rows = self.templates.copy()
-        for i, row in enumerate(self.pin_rows):
-            rows[row] = (2+2*i+((word >> i) & 1), 0, 0)
+        for row, choices, symbol in zip(self.pin_rows, self.pin_choices, symbols):
+            if not 0 <= symbol < len(choices):
+                raise ValueError('input symbol outside its alphabet')
+            rows[row] = (choices[symbol], 0, 0)
         return rows
 
     def values(self, word):
@@ -178,6 +196,16 @@ class Reduction:
                 values[left], values[right] = values[a]-values[z], values[b]-values[z]
                 values[last] = 1-values[left]-values[right]
         return values
+
+
+class Reduction(PinnedCircuitRows):
+    def __init__(self, d):
+        super().__init__(*circuit(d))
+
+    def rows(self, word):
+        if not 0 <= word < 1 << self.dag.inputs:
+            raise ValueError('source word outside the fixed input width')
+        return self.symbol_rows([(word >> i) & 1 for i in range(self.dag.inputs)])
 
     def build(self, word):
         return formula_family(self.count, self.rows(word))

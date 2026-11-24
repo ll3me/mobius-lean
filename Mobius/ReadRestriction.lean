@@ -88,4 +88,31 @@ theorem read_bound [DecidableEq I] [DecidableEq O] (g : Graph V E) (label : E �
   exact old path route (location i)
 
 
+
+/-- A prefix to a node can be followed by every accepting suffix there.
+    The prefix need not be consistent with any input. -/
+def Graph.prefixTo (g : Graph V E) (v : V) (pre : List E) (w : V) : Prop :=
+  ∀ tail, g.walk w tail → g.walk v (pre ++ tail)
+
+def OneException [DecidableEq I] (g : Graph V E) (label : E → Guard I) (r : Nat) : Prop :=
+  ∀ path, g.walk g.initial path → ∀ i j,
+    r < path.countP (fun e => (label e).mentions i) →
+    r < path.countP (fun e => (label e).mentions j) → i = j
+
+/-- A single over-budget prefix bounds *every* suffix at the same node,
+    including suffixes used by computations with a different prefix. -/
+theorem suffix_bound_of_overread [DecidableEq I] (g : Graph V E) (label : E → Guard I)
+    (budget : OneException g label r) (pre tail : List E)
+    (join : g.prefixTo g.initial pre v) (suffix : g.walk v tail)
+    (heavy : r < pre.countP (fun e => (label e).mentions i)) (other : i ≠ j) :
+    tail.countP (fun e => (label e).mentions j) ≤ r := by
+  apply Nat.le_of_not_gt
+  intro excessive
+  apply other
+  apply budget (pre ++ tail) (join tail suffix)
+  · rw [List.countP_append]
+    omega
+  · rw [List.countP_append]
+    omega
+
 end Mobius.ReadRestriction
