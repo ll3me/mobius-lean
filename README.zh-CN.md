@@ -12,6 +12,8 @@
 
 设 $H_n$ 判定一张 $n$ 点无自环有向图是否含哈密顿回路，$S(n)$ 是允许任意共享的 AND/OR/NOT 电路计算 $H_n$ 所需的最少门数。每份有向配对 $\rho$ 都把 $H_{2m}$ 限制为完整的 $H_m$。在所有计算 $H_{2m}$ 的**精确最优电路** $C$ 和所有这样的配对中，取化简后门数与原门数之比的最小值 $r_+(m)=\min_{C,\rho}\lvert R_+(C\vert_\rho)\rvert/S(2m)$。[配对定义](docs/PairContraction.md) · [化简器 $R_+$](docs/PairContraction.md#boolean-contraction-operator)
 
+![配对收缩后保留的门数比例。强猜想要求比例趋零，若成立则推出 P ≠ NP。固定余量猜想要求比例至多为 1/4 − σ，其中常数 σ > 0 与规模无关。弱猜想要求比例至多为 1/4。刻度间距为示意。](docs/figures/paired-conjectures-zh.svg)
+
 <a name="weak-pair-contraction-conjecture"></a>
 
 ### 弱猜想（化简后门数至多为原来的四分之一）

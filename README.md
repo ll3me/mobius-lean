@@ -12,6 +12,8 @@ Research, Lean 4 formalization, and initial notes in this repository were develo
 
 Let $H_n$ decide whether a loopless directed graph on $n$ vertices contains a Hamiltonian cycle. Let $S(n)$ be the minimum number of AND/OR/NOT gates needed to compute $H_n$ with unrestricted sharing. Each oriented pairing $\rho$ restricts $H_{2m}$ to the full $H_m$ problem. The smallest ratio of simplified to original gate count is $r_+(m)=\min_{C,\rho}\lvert R_+(C\vert_\rho)\rvert/S(2m)$, where $C$ ranges over **minimum-size circuits** for $H_{2m}$ and $\rho$ over all such pairings. [Pairing definition](docs/PairContraction.md) · [The simplifier $R_+$](docs/PairContraction.md#boolean-contraction-operator)
 
+![Conjectured surviving gate fractions. Strong means the fraction tends to zero and would imply P ≠ NP. Fixed margin means at most 1/4 − σ for a size-independent σ > 0. Weak means at most 1/4. The axis is schematic.](docs/figures/paired-conjectures-en.svg)
+
 <a name="weak-pair-contraction-conjecture"></a>
 
 ### Weak conjecture (at most one quarter of the original gate count)
