@@ -6,6 +6,8 @@
 
 Research, Lean 4 formalization, and initial notes in this repository were developed with GPT 6.2-Astra. As of 2026/11/25, work on this repository has used approximately 1.22B tokens.
 
+**Cite v0.1.0** · [Zenodo DOI 10.5281/zenodo.24526295](https://doi.org/10.5281/zenodo.24526295) · [GitHub release notes](https://github.com/ll3me/mobius-lean/releases/tag/v0.1.0)
+
 <a name="pair-contraction-conjecture"></a>
 
 ## Weak and strong pair-contraction conjectures for Hamiltonian cycle detection (open)
@@ -40,7 +42,7 @@ There is a constant $0<\sigma<1/4$, **independent of size**, such that $r_+(m)\l
 
 1. **Rigidity, spectral gap, and local-vs-global conflict for independent 4-bit sign tables**: Extends the classical single-table $1/15$ obstruction to arbitrary pairs of independent sign tables, proving that any pair fails at least 256 of the 3,840 anchored tests with all failures concentrated in a unique direction, counting all $15\cdot 2^{62}$ optimal ordered pairs, and classifying their normalized residuals. Establishes the second-smallest failure weight **282** (ruling out 257–281) and constructs explicit shared-entry instances where local optima must yield to the global optimum (2 vs. 3 on 78 faces of $K_4$, and forced sacrifice of the central board in a double fan with $p\ge 14$ leaves).
 2. **NP-completeness reductions on complete 4D boards and 3-SAT boundary sums**: Turns the 15-square contradiction certificate into inverter wires and exact-one gates to encode Graph 3-Coloring, Positive 1-in-3 SAT, and Max-Cut into a single global pair of tables, proving that simultaneous per-board optimality given only 4D board basis vectors is NP-complete. On ordinary 3-CNF, proves that a single fixed signed boundary sum always has SAT/UNSAT collisions, whereas two fixed sums exactly recover `#SAT`, and that threshold errors on a 7,680-formula suite equal the underlying cancellation failure count.
-3. **Reproducible Lean 4 proofs and Python checks.** The 122 modules under `Mobius/` contain 24,633 lines, with accompanying verification scripts that use Python’s standard library. The audit checks the transitive axioms of 6,383 project declarations and 3,933 upstream `Complexity` declarations. Their proofs use only Lean's standard axioms `propext`, `Classical.choice` and `Quot.sound`. The project modules contain zero uses of `sorry` or `native_decide`. [Modules](Mobius/) · [Axiom audit](Audit.lean)
+3. **Reproducible Lean 4 proofs and Python checks.** In v0.1.0 the 122 modules under `Mobius/` contain 24,847 lines, with accompanying verification scripts that use Python’s standard library. The audit checked the transitive axioms of 6,445 project declarations and 3,933 upstream `Complexity` declarations. Their proofs use only Lean's standard axioms `propext`, `Classical.choice` and `Quot.sound`. The project modules contain zero uses of `sorry` or `native_decide`. [Modules](Mobius/) · [Axiom audit](Audit.lean)
 
 **Side controls & reproductions (not new lower bounds):** To test which algorithmic ingredients bypass these obstructions, the repository also reproduces or transfers several known restricted-model lower bounds onto these board encodings—single-tape Turing machines ($\Omega_M(N^{3/2})$), subtraction-free $\min,+$ tropical circuits ($2^{\Omega(b)}$), nFBDD/DNNF, syntactic read-$r$-times branching programs, and two-party communication—paired with explicit bypass controls (linear-time two-tape machines and polynomial-size circuits with subtraction).
 

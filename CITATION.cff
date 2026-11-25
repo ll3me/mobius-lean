@@ -6,6 +6,8 @@ authors:
   - family-names: ll3me
     website: "https://github.com/ll3me"
 version: "0.1.0"
+date-released: 2026-11-25
+doi: 10.5281/zenodo.24526295
 repository-code: "https://github.com/ll3me/mobius-lean"
 license: Apache-2.0
 abstract: >-
