@@ -595,6 +595,56 @@ theorem private_or_small_size_fraction (N n s V F delta a gap extra : Nat)
     (quarter : 4 * gap ≤ 3 * N) (actual : 15 * delta + 7 * a ≤ 30 * extra) :
     gap ≤ 30 * extra := by omega
 
+/-- A width of q+2 in the multi-arc OR test bounds the cheap leaf positions. -/
+theorem variable_or_leaf_budget (q L P E M U stemNeg sideNeg J leaves F W forks : Nat)
+    (allocation : leaves + E = L + P + M) (exports : 2*E ≤ U+2*stemNeg+2)
+    (shortSides : (q+1)*U ≤ (q+2)*(M+sideNeg)) (nots : stemNeg+sideNeg ≤ J)
+    (secondSides : P+forks ≤ E+2*M+3*J+2*F+W) :
+    (5*q+6)*L + (6*q+6)*P + q*forks ≤
+      (5*q+6)*leaves + (9*q+6)*J + 2*q*F + q*W + 6*q+6 := by
+  have hAlloc := congrArg (q * ·) allocation
+  have hExports := Nat.mul_le_mul_left q exports
+  have hNots := Nat.mul_le_mul_left q nots
+  have hSecond := Nat.mul_le_mul_left q secondSides
+  simp only [Nat.add_mul, Nat.mul_add, Nat.one_mul, Nat.mul_assoc] at *
+  simp only [Nat.mul_left_comm q 2, Nat.mul_left_comm q 3] at *
+  omega
+
+/-- Convert the variable-width leaf bound to reader fees in the physical circuit. -/
+theorem variable_or_size_budget (q N V F W J L P leaves a forks : Nat)
+    (weights : V = F+W+J) (capacity : leaves ≤ W+forks+2*F) (fanout : forks ≤ W)
+    (oneRead : N ≤ L+F) (firstOr : N ≤ P+a+F)
+    (forest : (5*q+6)*L + (6*q+6)*P + q*forks ≤
+      (5*q+6)*leaves + (9*q+6)*J + 2*q*F + q*W + 6*q+6) :
+    (11*q+12)*N ≤ (10*q+12)*V + (13*q+12)*F + (6*q+6)*a + 6*q+6 := by
+  have hV := congrArg (q * ·) weights
+  have hCapacity := Nat.mul_le_mul_left q capacity
+  have hFanout := Nat.mul_le_mul_left q fanout
+  have hOne := Nat.mul_le_mul_left q oneRead
+  have hOr := Nat.mul_le_mul_left q firstOr
+  simp only [Nat.add_mul, Nat.mul_add, Nat.mul_assoc] at *
+  simp only [Nat.mul_left_comm q 2] at *
+  omega
+
+/-- A single expectation exceeding x and (x+y)/2 pays any combination with
+at least as much weight on x as on y. All terms can be scaled to integers. -/
+theorem blend_reader_estimates (w b x y z : Nat) (first : x ≤ z) (both : x+y ≤ 2*z) :
+    (w+b)*x + b*y ≤ (w+2*b)*z := by
+  have hFirst := Nat.mul_le_mul_left w first
+  have hBoth := Nat.mul_le_mul_left b both
+  simp only [Nat.add_mul, Nat.mul_add, Nat.mul_assoc, Nat.mul_left_comm b 2] at *
+  omega
+
+/-- For m >= 242 the finite integer loss pays one twentieth of the old gap.
+Here extra is the actual loss above 3m², and the old baseline is 3m²+m-2. -/
+theorem variable_or_twentieth (m extra gap : Nat) (scale : 242 ≤ m)
+    (target : gap+4*m ≤ 3*(m*m)+2) (actual : 3*(m*m) ≤ 19*extra+21*m) :
+    gap+20*m ≤ 20*extra+40 := by
+  have hm : 724 ≤ 3*m := by omega
+  have h := Nat.mul_le_mul_left m hm
+  rw [Nat.mul_left_comm m 3] at h
+  omega
+
 /-- Comparing actual deletions with the smaller decision circuit gives a
 recurrence in the two optimum sizes. -/
 theorem paired_zero_size_step (N n s small a loss : Nat)
@@ -647,5 +697,451 @@ theorem paired_zero_density (N s : Nat → Nat)
         omega
       · rw [h, nextArcs _ (by omega)]
         exact paired_zero_odd_density _ _ _ _ evenBound (split _ (by omega))
+
+/-- In a permutation of equally many entries and exits, the two kinds of
+same-side arc have the same count. True denotes an entry. -/
+theorem same_side_balance (arcs : List (Bool × Bool))
+    (balanced : arcs.countP (fun e => e.1) = arcs.countP (fun e => !e.2)) :
+    arcs.countP (fun e => e.1 && e.2) = arcs.countP (fun e => !e.1 && !e.2) := by
+  have ledger (a : List (Bool × Bool)) :
+      a.countP (fun e => e.1 && e.2) + a.countP (fun e => !e.2) =
+      a.countP (fun e => !e.1 && !e.2) + a.countP (fun e => e.1) := by
+    induction a with
+    | nil => rfl
+    | cons edge tail ih =>
+      obtain ⟨u,v⟩ := edge
+      cases u <;> cases v <;> simp at * <;> omega
+  have h := ledger arcs
+  omega
+
+/-- Clear the denominators in the flexible-pin expectation. The two coefficient
+comparisons account for the signed fee term and the missing entry-side heads. -/
+theorem flexible_reader_comparison (N n loss t u flex F a : Nat) (pos : 0 < N)
+    (cost : N*N+u*F+flex*a ≤ N*loss+t*F+N)
+    (fee : 4*t ≤ 4*u+N) (heads : N=2*flex+2*(n+1)) (count : a ≤ N) :
+    4*N+2*a ≤ 4*loss+F+4*n+8 := by
+  have hFee := Nat.mul_le_mul_right F fee
+  have hHeads := congrArg (· * a) heads
+  have hCount := Nat.mul_le_mul_left (4*(n+1)) count
+  have priced : N*(4*N+2*a) ≤ N*(4*loss+F+4*n+8) := by
+    simp only [Nat.mul_add, Nat.add_mul, Nat.mul_assoc, Nat.mul_one] at *
+    simp only [Nat.mul_left_comm N 4, Nat.mul_left_comm N 2, Nat.mul_comm n N] at *
+    omega
+  exact Nat.le_of_mul_le_mul_left priced pos
+
+theorem flexible_fee_capacity (n : Nat) (scale : 8 ≤ n) :
+    2*(n*(n-1)+1) ≤ (n-2)*(2*n+3) := by
+  obtain ⟨k, rfl⟩ := Nat.exists_eq_add_of_le scale
+  have left : 8+k-1 = 7+k := by omega
+  have right : 8+k-2 = 6+k := by omega
+  rw [left, right]
+  simp only [Nat.mul_add, Nat.add_mul, Nat.mul_left_comm k 2]
+  omega
+
+/-- Remove the denominator n-2 from the first forest inequality. The
+capacity hypothesis is 2(N+1) <= (n-2)(2n+3), valid from n=8. -/
+theorem flexible_fee_bound (d N n s F : Nat) (pos : 0 < d)
+    (weight : F+N ≤ s+1) (forest : d*(F+3*N) ≤ d*(2*s+2)+2*F)
+    (capacity : 2*(N+1) ≤ d*(2*n+3)) : F+3*N ≤ 2*s+2*n+5 := by
+  by_cases h : s ≤ 2*N
+  · have hF : 2*F ≤ d*(2*n+3) := by omega
+    have hsum : d*(F+3*N) ≤ d*(2*s+2)+d*(2*n+3) := by omega
+    rw [← Nat.mul_add] at hsum
+    have h' := Nat.le_of_mul_le_mul_left hsum pos
+    omega
+  · omega
+
+/-- The first-reader loss here is for an alternative restriction representing
+the same smaller function. It need not be the zero-filled pairing. -/
+theorem flexible_size_step (N n s small F a loss : Nat)
+    (fees : F+3*N ≤ 2*s+2*n+5) (forest : 4*N ≤ 2*s+2*F+a+3)
+    (readers : 4*N+2*a ≤ 4*loss+F+4*n+8) (correct : small+loss ≤ s) :
+    27*N+4*small ≤ 18*s+14*n+39 := by omega
+
+/-- A finite budget for the excess of a physical residual over the small optimum. -/
+theorem flexible_quarter_room (N smallN n m s small room : Nat) (double : n=2*m)
+    (arcs : N=4*smallN+n) (step : 27*N+4*small ≤ 18*s+14*n+39)
+    (price : 68*small+72*room+39 ≤ 108*smallN+26*m) : 4*(small+room) ≤ s := by omega
+
+/-- The sharper even estimate supplies the following odd size via one split. -/
+theorem flexible_even_density (N smallN n m s small : Nat)
+    (double : n=2*m) (arcs : N=4*smallN+n)
+    (step : 27*N+4*small ≤ 18*s+14*n+39)
+    (ih : 27*smallN ≤ 17*small+51*m+85) : 54*N ≤ 34*s+51*n+136 := by omega
+
+theorem flexible_odd_density (N nextN n s next : Nat) (arcs : nextN=N+2*n)
+    (even : 54*N ≤ 34*s+51*n+136) (split : s+2*n ≤ next) :
+    27*nextN ≤ 17*next+51*(n+1)+85 := by omega
+
+/-- Strong induction needs only the even-size comparison, the single-vertex
+split and the base cases. The bound is in raw directed arc bits. -/
+theorem flexible_density (N s : Nat → Nat)
+    (base : ∀ n, 2 ≤ n → n ≤ 7 → 27*N n ≤ 17*s n+51*n+85)
+    (doubleArcs : ∀ m, 4 ≤ m → N (2*m)=4*N m+2*m)
+    (nextArcs : ∀ k, 8 ≤ k → N (k+1)=N k+2*k)
+    (evenStep : ∀ m, 4 ≤ m → 27*N (2*m)+4*s m ≤ 18*s (2*m)+14*(2*m)+39)
+    (split : ∀ k, 8 ≤ k → s k+2*k ≤ s (k+1)) :
+    ∀ n, 2 ≤ n → 27*N n ≤ 17*s n+51*n+85 := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    intro hn
+    by_cases small : n ≤ 7
+    · exact base n hn small
+    · let m := n/2
+      have hm : 4 ≤ m := by dsimp [m]; omega
+      have prev := ih m (by dsimp [m]; omega) (by omega)
+      have even := flexible_even_density _ _ _ _ _ _ rfl (doubleArcs m hm) (evenStep m hm) prev
+      have parity : n=2*m ∨ n=2*m+1 := by dsimp [m]; omega
+      rcases parity with h | h
+      · rw [h]
+        omega
+      · rw [h]
+        exact flexible_odd_density _ _ _ _ _ (nextArcs _ (by omega)) even (split _ (by omega))
+
+/-- Marking just the flexible side gives a scale difference independent of the
+small optimum. Strictness of m*N < 2*w*F accounts for the integer rounding. -/
+theorem flexible_absolute_gap (N m loss w F : Nat)
+    (ledger : N*N+w*F ≤ N*(loss+1)) (strictFee : m*N < 2*(w*F)) :
+    N+m/2 ≤ loss := by
+  have clear : N*(2*N+m) < N*(2*loss+2) := by
+    simp only [Nat.mul_add, Nat.mul_one, Nat.mul_left_comm N 2, Nat.mul_comm N m] at *
+    omega
+  have step := Nat.lt_of_mul_lt_mul_left clear
+  omega
+
+/-- Specialize the density induction to the actual loopless arc count and
+discharge the small orders using only essentiality of the raw inputs. -/
+theorem flexible_arc_density (s : Nat → Nat)
+    (raw : ∀ n, 2 ≤ n → n*(n-1) ≤ s n+1)
+    (evenStep : ∀ m, 4 ≤ m →
+      27*((2*m)*(2*m-1))+4*s m ≤ 18*s (2*m)+14*(2*m)+39)
+    (split : ∀ k, 8 ≤ k → s k+2*k ≤ s (k+1)) :
+    ∀ n, 2 ≤ n → 27*(n*(n-1)) ≤ 17*s n+51*n+85 := by
+  apply flexible_density (fun n => n*(n-1)) s
+  · intro n hn h7
+    have essential := raw n hn
+    have cases : n=2 ∨ n=3 ∨ n=4 ∨ n=5 ∨ n=6 ∨ n=7 := by omega
+    rcases cases with h | h | h | h | h | h <;> subst n <;> omega
+  · intro m hm
+    have h : 2*m-1 = 2*(m-1)+1 := by omega
+    simp only [h, Nat.mul_add, Nat.mul_one, Nat.mul_assoc, Nat.mul_left_comm m 2]
+    omega
+  · intro k hk
+    have h : k+1-1 = k := by omega
+    have hk' : k = (k-1)+1 := by omega
+    change (k+1)*(k+1-1) = k*(k-1)+2*k
+    rw [h, Nat.add_mul, Nat.one_mul]
+    have expansion := congrArg (k * ·) hk'
+    simp only [Nat.mul_add, Nat.mul_one] at expansion
+    omega
+  · exact evenStep
+  · exact split
+
+/-- With the fixed-partner promise priced at small + 3*arcs, characterize
+the cost of full-graph correctness needed to pay for a given residue. -/
+theorem fixed_partner_quarter (full small arcs outside residualExtra : Nat)
+    (price : full = small + 3*arcs + outside) :
+    4*(small + residualExtra) ≤ full ↔
+      3*small + 4*residualExtra ≤ outside + 3*arcs := by omega
+
+/-- Cutting a shared computation of the grouped adjacencies and a small
+optimal core suffices under the stated full-graph gate budget. -/
+theorem quotient_core_quarter (full small bigArcs smallArcs cut dead ports : Nat)
+    (ledger : cut + dead + ports + bigArcs + small ≤ full + smallArcs)
+    (core : smallArcs + small ≤ cut) (cost : 2*small ≤ bigArcs) :
+    4*small ≤ full := by omega
+
+/-- Count an original representative once across four runs, then add its
+repeated uses. The three-unit allowance accounts for rounding each quarter. -/
+theorem four_residues_quarter (full unused repeated extra a b c d : Nat)
+    (ledger : a+b+c+d+unused+extra = full+repeated)
+    (budget : repeated + full%4 ≤ unused+extra+3) :
+    a ≤ full/4 ∨ b ≤ full/4 ∨ c ≤ full/4 ∨ d ≤ full/4 := by omega
+
+/-- Count the boundary once even when a removed signal has many outside readers. -/
+theorem constant_cut_third (g ports hidden incoming unary rawRepeat gateRepeat singles credit : Nat)
+    (cut : g + ports = hidden + credit)
+    (wires : credit = incoming + unary + rawRepeat + gateRepeat)
+    (first : hidden ≤ singles + rawRepeat + unary)
+    (sides : singles ≤ incoming + 2*gateRepeat + rawRepeat) :
+    g + ports + incoming + unary ≤ 3*credit := by omega
+
+/-- When inputs on either side can be recovered with the other side fixed,
+the same port count bounds both sets of hidden raw inputs. -/
+theorem internal_cut_half (g ports left right credit : Nat)
+    (cut : g + ports = left + right + credit)
+    (readers : left + right ≤ g) (recoverLeft : left ≤ ports) (recoverRight : right ≤ ports) :
+    g ≤ 2*credit := by omega
+
+/-- Each boundary bit has at most k+1 views across the two directions in
+total. Combine recoverability with the shared forest bound. -/
+theorem constant_cut_views (k g ports hidden credit : Nat)
+    (cut : g + ports = hidden + credit) (recover : hidden ≤ (k+1)*ports)
+    (forest : g+ports ≤ 3*credit) : (k+1)*g ≤ (3*k+1)*credit := by
+  have scaled := Nat.mul_le_mul_left k forest
+  simp only [Nat.add_mul, Nat.mul_add, Nat.one_mul, Nat.mul_assoc, Nat.mul_left_comm k 3] at *
+  omega
+
+/-- Recovering every addressed bit from the same word bounds the width of
+that word, even when different addresses use different decoding functions. -/
+theorem probe_word_width {n w : Nat} (encode : BitVec n → BitVec w)
+    (decode : BitVec w → Fin n → Bool)
+    (reads : ∀ x i, decode (encode x) i = x.getLsbD i.val) : n ≤ w := by
+  have cap : 2^n ≤ 2^w := by
+    apply Bounded.fin_size_le (fun v : Fin (2^n) => (encode (.ofFin v)).toFin)
+    intro a b eq
+    have same : encode (.ofFin a) = encode (.ofFin b) := by
+      simpa using congrArg BitVec.ofFin eq
+    apply congrArg BitVec.toFin
+    apply BitVec.eq_of_getLsbD_eq_iff.mpr
+    intro i hi
+    exact (reads (.ofFin a) ⟨i,hi⟩).symm.trans
+      ((congrArg (fun z => decode z ⟨i,hi⟩) same).trans (reads (.ofFin b) ⟨i,hi⟩))
+  exact Nat.le_of_not_lt fun h => Nat.not_lt_of_ge cap (Nat.pow_lt_pow_right (by decide : 1<2) h)
+
+/-- If a quarter is reached, what the second stage pays beyond its raw
+fixed inputs follows from the alternating circuit lower bound. -/
+theorem alternating_stage_gap (s rows square interim residue extra : Nat)
+    (forest : 6*square + rows ≤ 2*interim + 5)
+    (second : interim = residue + square + rows + extra)
+    (quarter : residue ≤ s/4) :
+    4*square ≤ 2*(s/4) + 2*extra + rows + 5 := by omega
+
+/-- Opposite-matrix raw inputs lost at the cut are charged separately.
+Only the return entries can be lost under the standard matching. -/
+theorem alternating_mixed_cut (area rest g ports forward backward credit : Nat)
+    (cut : g+ports = forward+backward+credit)
+    (capacity : area*forward ≤ (area+rest)*ports)
+    (forest : g+ports ≤ 3*credit) :
+    (area+rest)*g ≤ (area+3*rest)*credit + area*backward := by
+  have scaledCut := congrArg (area * ·) cut
+  have scaledForest := Nat.mul_le_mul_left rest forest
+  simp only [Nat.mul_add, Nat.add_mul, Nat.mul_assoc, Nat.mul_left_comm rest 3] at *
+  omega
+
+/-- A relabelled address rectangle sees area out of area+rest entries.
+A cut depending only on the forward matrix loses no backward raw inputs. -/
+theorem alternating_matrix_cut (area rest g ports hidden credit : Nat)
+    (cut : g+ports = hidden+credit) (capacity : area*hidden ≤ (area+rest)*ports)
+    (forest : g+ports ≤ 3*credit) : (area+rest)*g ≤ (area+3*rest)*credit := by
+  simpa using alternating_mixed_cut area rest g ports hidden 0 credit (by simpa using cut) capacity forest
+
+/-- An exceptional connected component can discard one ticket beyond its
+gate count only if it contains at least k tickets. Sum over the actual DAG. -/
+theorem pruned_component_tickets (k : Nat) (blocks : List (Nat × Nat))
+    (bounds : ∀ p ∈ blocks, p.2 ≤ p.1+1 ∧ (p.1 < p.2 → k ≤ p.2)) :
+    k * (blocks.map Prod.snd).sum ≤ k * (blocks.map Prod.fst).sum + (blocks.map Prod.snd).sum := by
+  induction blocks with
+  | nil => simp
+  | cons p ps ih =>
+    have h := bounds p (by simp)
+    have part : k*p.2 ≤ k*p.1 + p.2 := by
+      by_cases same : p.2 ≤ p.1
+      · have h' := Nat.mul_le_mul_left k same
+        omega
+      · have h' : p.2 = p.1+1 := by omega
+        have deep := h.2 (by omega)
+        rw [h', Nat.mul_add, Nat.mul_one]
+        omega
+    have tail := ih (fun x hx => bounds x (by simp [hx]))
+    simp only [List.map_cons, List.sum_cons, Nat.mul_add]
+    omega
+
+/-- The common finite recurrence for the full-to-alternating stage and
+the alternating-to-small stage; square is the number of matrix cells. -/
+theorem two_stage_size_recurrence (full alt small N square m : Nat)
+    (raw : N+2*m = 4*square)
+    (first : 5*N+2*alt ≤ 4*full+12*m+22)
+    (second : 10*square+2*small ≤ 4*alt+12*m+22) :
+    25*N+4*small ≤ 16*full+62*m+132 := by omega
+
+theorem matrix_stage_size (M s next a fees m : Nat)
+    (sparse : 3*M+a+fees ≤ 4*(s-next)+20*m+32)
+    (forest : 7*M ≤ 4*s+a+fees+4*m+11) (mono : next ≤ s) :
+    5*M+2*next ≤ 4*s+12*m+22 := by omega
+
+theorem ordered_arc_density (s : Nat → Nat)
+    (raw : ∀ n, 2 ≤ n → n*(n-1) ≤ s n+1)
+    (halve : ∀ m, 4 ≤ m →
+      25*((2*m)*(2*m-1))+4*s m ≤ 16*s (2*m)+62*m+132)
+    (split : ∀ n, 8 ≤ n → s n+2*n ≤ s (n+1)) :
+    ∀ n, 2 ≤ n → 5*(n*(n-1)) ≤ 3*s n+12*n+36 := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    intro hn
+    by_cases hsmall : n ≤ 7
+    · have h := raw n hn
+      have cases : n=2 ∨ n=3 ∨ n=4 ∨ n=5 ∨ n=6 ∨ n=7 := by omega
+      rcases cases with h | h | h | h | h | h <;> subst n <;> omega
+    · let m := n/2
+      have hm : 4 ≤ m := by dsimp [m]; omega
+      have prev := ih m (by dsimp [m]; omega) (by omega)
+      have stepEven := halve m hm
+      have arms : 2*m-1 = 2*(m-1)+1 := by omega
+      have doubleArcs : (2*m)*(2*m-1) = 4*(m*(m-1))+2*m := by
+        rw [arms]
+        simp only [Nat.mul_add, Nat.mul_one, Nat.mul_assoc, Nat.mul_left_comm m 2]
+        omega
+
+      have even : 5*((2*m)*(2*m-1)) ≤ 3*s (2*m)+8*(2*m)+36 := by omega
+      have cases : n=2*m ∨ n=2*m+1 := by dsimp [m]; omega
+      rcases cases with h | h
+      · rw [h]
+        omega
+      · rw [h]
+        have step := split (2*m) (by omega)
+        have succArcs : (2*m+1)*(2*m+1-1) = (2*m)*(2*m-1)+2*(2*m) := by
+          have sub : 2*m+1-1 = 2*m := by omega
+          have add : 2*m = (2*m-1)+1 := by omega
+          rw [sub, Nat.add_mul, Nat.one_mul]
+          have expand := congrArg ((2*m) * ·) add
+          simp only [Nat.mul_add, Nat.mul_one] at expand
+          omega
+        omega
+
+/-- A period of a monotone decision makes every bit in its support
+irrelevant. The low and high corners of each fibre have the same answer. -/
+theorem monotone_period_fibre (f : (ι → Bool) → Bool) (mask : ι → Bool)
+    (mono : ∀ a b : ι → Bool, (∀ i, a i=true → b i=true) → f a=true → f b=true)
+    (period : ∀ a, f (fun i => a i ^^ mask i) = f a)
+    (x y : ι → Bool) (agree : ∀ i, mask i=false → x i=y i) : f x = f y := by
+  let lo := fun i => x i && !mask i
+  let hi := fun i => x i || mask i
+  have toggled : (fun i => lo i ^^ mask i) = hi := by
+    funext i
+    cases hx : x i <;> cases hm : mask i <;> simp [lo, hi, hx, hm]
+  have eq := period lo
+  rw [toggled] at eq
+  have middle (z : ι → Bool) (hz : ∀ i, mask i=false → x i=z i) : f lo = f z := by
+    have low : ∀ i, lo i=true → z i=true := by
+      intro i h
+      cases hm : mask i with
+      | false => simpa [lo, hm, hz i hm] using h
+      | true => simp [lo, hm] at h
+    have high : ∀ i, z i=true → hi i=true := by
+      intro i h
+      cases hm : mask i with
+      | false => simp [hi, hm, hz i hm, h]
+      | true => simp [hi, hm]
+    apply Bool.eq_iff_iff.mpr
+    exact ⟨mono lo z low, fun h => eq ▸ mono z hi high h⟩
+  exact (middle x (fun _ _ => rfl)).symm.trans (middle y agree)
+
+/-- A two-way protocol across the physical cut includes its incoming
+positions. Keep both directions when combining communication and forest size. -/
+theorem separated_port_credit (mass hit g ports hidden incoming credit : Nat)
+    (cut : g+ports = hidden+credit)
+    (communication : hit*hidden ≤ mass*(ports+incoming))
+    (forest : g+ports+incoming ≤ 3*credit) :
+    (mass+hit)*g+hit*ports ≤ (3*mass+hit)*credit := by
+  have scaled := Nat.mul_le_mul_left mass forest
+  have same := congrArg (hit * ·) cut
+  simp only [Nat.mul_add, Nat.add_mul, Nat.mul_assoc, Nat.mul_left_comm mass 3] at *
+  omega
+
+/-- Integer endpoint of the uniform one-fourteenth bound. -/
+theorem component_fourteenth (m extra gap : Nat) (scale : 123 ≤ m)
+    (need : gap+4*m ≤ 3*(m*m)+2)
+    (credit : 3*(m*m)+24 ≤ 13*extra+30*m) : gap ≤ 14*extra := by
+  have scale' : 368 ≤ 3*m := by omega
+  have quad := Nat.mul_le_mul_left m scale'
+  rw [Nat.mul_left_comm m 3] at quad
+  omega
+
+/-- Two ways to complete a prescribed forward arc. The return arcs either
+avoid both endpoints at once or reach the two endpoints separately. -/
+theorem return_arc_witness (X : β → α → Prop) (j : β) (i : α) :
+    ((∃ l k, X l k ∧ l ≠ j ∧ k ≠ i) ∨
+      ((∃ l, X l i ∧ l ≠ j) ∧ (∃ k, X j k ∧ k ≠ i))) ↔
+      ((∃ l k, X l k ∧ l ≠ j) ∧ (∃ l k, X l k ∧ k ≠ i)) := by
+  constructor
+  · rintro (⟨l,k,h,hl,hk⟩ | ⟨⟨l,h,hl⟩,⟨k,h',hk⟩⟩)
+    · exact ⟨⟨l,k,h,hl⟩, ⟨l,k,h,hk⟩⟩
+    · exact ⟨⟨l,i,h,hl⟩, ⟨j,k,h',hk⟩⟩
+  · rintro ⟨⟨l,k,h,hl⟩,⟨l',k',h',hk'⟩⟩
+    by_cases hk : k = i
+    · by_cases hl' : l' = j
+      · exact Or.inr ⟨⟨l,hk ▸ h,hl⟩, ⟨k',hl' ▸ h',hk'⟩⟩
+      · exact Or.inl ⟨l',k',h',hl',hk'⟩
+    · exact Or.inl ⟨l,k,h,hl,hk⟩
+
+/-- Every off-row, off-column cell is simultaneously sensitive at an
+absorbing assignment for a guard satisfying the tour witness condition. -/
+theorem opposite_guard_sensitive [DecidableEq α] [DecidableEq β]
+    (guard : (β → α → Bool) → Bool) (neutral : Bool) (j : β) (i : α)
+    (witness : ∀ X l k, l ≠ j → k ≠ i → X l k = true → guard X = neutral)
+    (X : β → α → Bool) (absorbs : guard X ≠ neutral)
+    (l : β) (k : α) (hl : l ≠ j) (hk : k ≠ i) :
+    X l k = false ∧
+    guard (fun u v => if u = l ∧ v = k then true else X u v) = neutral := by
+  constructor
+  · cases hv : X l k with
+    | false => rfl
+    | true => exact False.elim (absorbs (witness X l k hl hk hv))
+  · exact witness _ l k hl hk (by simp)
+
+/-- All nonzero patterns of the pool give the same port value. They can
+be replaced by a single designated bit, at either output polarity. -/
+theorem pool_at_representative [DecidableEq ι] (f : (ι → Bool) → β → γ)
+    (rep : ι) (on : β → γ)
+    (forced : ∀ x z i, x i = true → f x z = on z) (x : ι → Bool) (z : β)
+    (anyBit : Bool) (correct : anyBit = true ↔ ∃ i, x i = true) :
+    f x z = f (fun i => if i = rep then anyBit else false) z := by
+  cases ha : anyBit with
+  | false =>
+    have off (i : ι) : x i = false := by
+      cases hx : x i with
+      | false => rfl
+      | true => have := correct.mpr ⟨i,hx⟩; simp_all
+    have eq : x = fun i => if i = rep then false else false := by
+      funext i
+      simp [off]
+    exact congrArg (fun v => f v z) eq
+  | true =>
+    obtain ⟨i,hi⟩ := correct.mp ha
+    exact (forced x z i hi).trans
+      (forced (fun j => if j = rep then true else false) z rep (by simp)).symm
+
+/-- The whole-graph INDEX probes pay for the hidden reverse inputs.
+Every hidden item outside that matrix, and each missed address, is debited once. -/
+theorem full_index_cut_credit (pins gates ports reverse other missed loss : Nat)
+    (replay : pins+gates+ports ≤ loss+reverse+other)
+    (address : reverse ≤ ports+missed) : pins+gates ≤ loss+other+missed := by omega
+
+/-- Removing a private OR tree at the same time as first readers loses
+at most one unit relative to the number of its free inputs. -/
+theorem pruned_pool_credit (q fixed free tree reads : Nat)
+    (partition : q = fixed+free) (size : q=tree+1) (paid : reads ≤ fixed) :
+    free+reads ≤ tree+1 := by omega
+
+/-- A connected component with p vertices and k signed pins uses at
+most k contractions, including one auxiliary vertex per forbidden adjacency. -/
+theorem pin_block_budget (p k detours : Nat) (vertices : 2 ≤ p)
+    (connected : p ≤ k+1) (average : p*detours ≤ k) : p-1+detours ≤ k := by
+  cases detours with
+  | zero => omega
+  | succ d =>
+    have h := Nat.mul_le_mul_right d (show 1 ≤ p by omega)
+    simp only [Nat.one_mul] at h
+    rw [Nat.mul_succ] at average
+    omega
+
+/-- Each successful one-pair quarter step multiplies the size by four.
+Steps on which the condition is unavailable still preserve monotonicity. -/
+theorem quarter_jump_product (s : Nat → Nat) (jump : Nat → Bool)
+    (mono : ∀ i, s i ≤ s (i+1)) (step : ∀ i, jump i = true → 4*s i ≤ s (i+1)) :
+    ∀ m, 4^((List.range m).filter jump).length * s 0 ≤ s m := by
+  intro m
+  induction m with
+  | zero => simp
+  | succ m ih =>
+    rw [List.range_succ, List.filter_append]
+    cases h : jump m with
+    | false => simpa [h] using Nat.le_trans ih (mono m)
+    | true =>
+      have t := Nat.le_trans (Nat.mul_le_mul_left 4 ih) (step m h)
+      simpa [h, Nat.pow_succ, Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc] using t
 
 end Mobius.PairContraction

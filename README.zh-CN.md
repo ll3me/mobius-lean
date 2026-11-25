@@ -1,6 +1,6 @@
 # Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-[English](README.md) | **中文** · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture) · [固定余量猜想](#fixed-margin-conjecture) · [配对收缩阶段小结](#pair-contraction-summary)
+[English](README.md) | **中文** · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture) · [固定余量猜想](#fixed-margin-conjecture) · [次线性配对数与 P ≠ NP](#sublinear-pair-criterion) · [配对收缩阶段小结](#pair-contraction-summary)
 
 > 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
@@ -10,7 +10,7 @@
 
 <a name="pair-contraction-conjecture"></a>
 
-## 哈密顿回路判定中配对收缩的弱猜想与强猜想（开放）
+## 哈密顿回路判定的三项配对收缩猜想（开放）
 
 设 $H_n$ 判定一张 $n$ 点无自环有向图是否含哈密顿回路，$S(n)$ 是允许任意共享的 AND/OR/NOT 电路计算 $H_n$ 所需的最少门数。每份有向配对 $\rho$ 都把 $H_{2m}$ 限制为完整的 $H_m$。在所有计算 $H_{2m}$ 的**精确最优电路** $C$ 和所有这样的配对中，取化简后门数与原门数之比的最小值 $r_+(m)=\min_{C,\rho}\lvert R_+(C\vert_\rho)\rvert/S(2m)$。[配对定义](docs/PairContraction.md) · [化简器 $R_+$](docs/PairContraction.md#boolean-contraction-operator)
 
@@ -34,6 +34,16 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 存在一个**与规模无关**的 $0<\sigma<1/4$，使每个充分大的 $m$ 都有 $r_+(m)\le 1/4-\sigma$。强猜想推出固定余量猜想，固定余量猜想又推出弱猜想。按 $N=n(n-1)$ 个输入弧位计，固定余量将给出 $S(n)=\Omega(N^{1+\delta})$，其中 $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$。已证的单出口奇偶区域重建只对这些区域的合计门数给出余量 $\sigma_m=1/(8m-4)$，它随 $m$ 趋零。[固定余量的推导](docs/MultiplicativeGap.md#fixed-quarter-margin) · [局部定理与覆盖率](docs/SignedCircuitSweeps.md)
 
+<a id="sublinear-pair-criterion"></a>
+
+## 若用次线性数量的搭档达到四分之一，则 P ≠ NP
+
+弱猜想允许用完 $n/2$ 对搭档。**这里尚待证明的条件**是，对每个充分大的偶数 $n$，都有一份 $H_n$ 的精确最优电路，只需收缩 $k(n)=o(n)$ 对互不相交的有向搭档，$R_+$ 就至多留下 $S(n)/4$ 扇门。剩余电路必须判对全部 $n-k(n)$ 点图，故
+
+$$S(n)\ge 4S\bigl(n-k(n)\bigr).$$
+
+递推比较的是各规模的最小门数，每一步都可以另选最优电路。从 $n$ 点降到 $n/2$ 点，可累计的四倍因子个数随 $n$ 增大而趋于无穷。逐尺度迭代便得 $S(n)=n^{\omega(1)}$，按 $n(n-1)$ 个输入弧位计也是超多项式下界。有向哈密顿回路判定属于 NP，而每个多项式时间算法都有多项式规模电路，因此该条件将推出 **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm P\ne\mathrm{NP}$**。若只需 $k(n)=O(\sqrt n)$ 对，同一递推还给出 $2^{\Omega(\sqrt n)}$ 扇门的下界。[递推与增长率证明](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档) · [多项式时间的电路模拟，定理 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+
 ## 省流 / 实测情况
 
 **没有做什么：** 本项目**没有**证明 $\mathrm{P} \ne \mathrm{NP}$，没有改善上游已有 ETH 构造的总体时间上界（仓库里算出的 1,521 只是特定三比特分组下的局部对照常数），也没有突破任何通用计算模型的时间下界。
@@ -48,7 +58,7 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 **至少有几张完整板必须偏离最优？** 从有 $v$ 个顶点、$e$ 条边的简单图构造 $B=8v+57e$ 张无权板。让同一对全局表作用于所有板，最少坏板数恰为使原图可三着色所需的最少删点数。由 OpenAI 第 106 族，区分零张坏板和超过 $v/2$ 张坏板是 NP 困难的，负例的损失至少为 $\sqrt{B/114}$ 张。一般等式有书面证明。逐格计分给出了 $K_4$ 坏 1 张、$K_5$ 坏 2 张的全局表，SAT 检查排除了更小的坏板数。[证明与出处](docs/FaceMultiplicity.md#color-deletion) · [复算脚本](experiments/color_deletion.py)
 
-## 哈密顿回路判定的配对收缩（截至 2026-11-25）
+## 哈密顿回路判定的配对收缩（截至 2026-11-26）
 
 记 $H_n$ 为 $n$ 点无自环有向图的哈密顿回路判定。在板网编码中，每条弧的开关占一个原始坐标位。同一对全局表能让所有板同时最优，当且仅当 $H_n=1$。取 $n=2m$，把顶点分成有向点对 $\rho=((a_i,b_i))_{i=1}^m$。固定开放每条 $a_i\to b_i$，让 $i\ne j$ 的 $b_i\to a_j$ 自由开关，其余弧全部关闭。全圈必须连续走完每一对，缩点后恰好保留所有小图上的 $H_m$。[板网编码](docs/HamiltonianBoards.md) · [配对构造](docs/PairContraction.md)
 
@@ -60,6 +70,14 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 对 $m\ge3$ 和每份计算 $H_{2m}$ 的精确最优 AND/OR/NOT 电路，都存在一份配对，使 $R_0$ **至少删去 $3m^2+m-2+\lceil m/2\rceil$ 扇门**，同时在全部小图输入上保留 $H_m$。矩形中的弧逐步钉到搭档矩阵时，其他原位仍是本质输入。切掉被吸收的首个读门后，每项丢失的原始文字引用都能追溯到一个预先指定的读门，从而在同一配对上多保证 $\lceil m/2\rceil$ 门。一般规模有书面证明，Lean 核验了路径与门数计费引理。另有一条紧界：任意预先指定的 $2m+1$ 条弧都可以由同一配对固定，$2m+2$ 条弧已有反例。[新删门界与核验](docs/AbsorbingReaders.md) · [指定弧集的紧界](docs/JointNegativeContraction.md#同时固定原弧的紧界)
 
+固定无序搭档，让每对独立选择朝向，即使要求在全部 $2^m$ 种朝向中判对每张小图，一份最优 $H_m$ 电路也能供所有测试复用。这个承诺问题的最小门数恰为 $S(m)+3m(m-1)$，每份最优电路在每种朝向下都恰留 $S(m)$ 门，存活率的下极限至少为 $9/26$。即使更换搭档，把四份测试合计暴露的不同弧位数做到最大，也能共用一份 $H_m$ 电路。原猜想还要求判对这些测试以外的大图。[证明与换搭档对照](docs/FourPairBudget.md)
+
+在同一份标准配对上，将 $R_0$ 已传播成常量的出口一起切开。若连同失去用途的祖先共取下 $g$ 扇原门，则在 $3m^2-m$ 个固定位之外至少还能计入 $\lceil g/3\rceil$ 扇实际删门。第二步把一个跨侧矩阵钉为匹配，若可见常量出口只读该矩阵，额外可计入的比例趋于 $1/2$。允许出口任意混读两张矩阵并共享时，用必须连成单环的端口测试，所证比例趋于 $5/13$。推到四分之一还须保证同一配对在精确最优电路里实际切下足够多的门。[两阶段计费](docs/AlternatingGateCut.md) · [端口测试及覆盖缺口](docs/MatchedMatrixBudget.md#两个方向可以任意通信的混合门)
+
+**一处接线足以迫使一批共享门消失。** 若全图最优电路中某条正向弧只有一个 AND 或 OR 读者，且另一操作数在一个平衡划分上只用反向弧，则沿该划分的每份反向匹配，第二阶段都能在固定位之外多删 $(1/2-o(1))m^2$ 门。允许混读后，八点对照中同一配对的 $R_+$ 留下 31 门，沿用原弧的版本留下 20 门，全部 4,096 张小图上答案相同。改接后的源电路严格大于最优规模。[全图判据与 1,680 份配对的对照](docs/MatchedMatrixBudget.md#一扇只读对向弧的门能迫使多大的实际切口)
+
+**全图中的混合门。** 一份标准配对能同时钉住整张反向矩阵和任意五条正向弧。若这使一片 $g$ 门区域成为常量，利用全图其余线路逐位询问，至少能在固定位之外计入 $g-5$ 扇实删。六条正向弧已可阻止同时钉位。若原图出口只读两张跨侧矩阵且已在标准方向化成常量，即使任意混读，$g$ 门也至少可额外计入 $g-(3m-1)$ 门。另有一项尺度障碍：在下密度至少为 $1-\log_2(375/196)$ 的偶数规模上，只钉至多两条弧或只收至多两对顶点，即使重取最优也会留下超过四分之一。[混合切口与实删](docs/MixedGuardPooling.md) · [前两个搭档的排除界](docs/MixedGuardPooling.md#前两个搭档已被上界排除)
+
 八点实验用同一份预定配对追踪 392 扇共享门。每扇门都能区分两张强连通、有环覆盖、却无全圈的图。第二种实现先让每个弧位经过一段在所有输入上都返回原位值的电路，再接入相同的计算。
 
 | 八点电路 | 原门数 | 392 扇中化为常量 | 剩余总门数 | 四分之一准许剩余 |
@@ -69,9 +87,9 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 遍历全部 1,680 种配对，第一种实现每次都剩 33 门，第二种最少剩 2,400 门。同一门基里的原始 Held–Karp 实现只需 2,260 门，因此表中两份电路都严格大于最小规模。[逐门记录](docs/JointNegativeContraction.md#八点实例的同一份配对) · [Held–Karp 门数公式](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Python 复核](experiments/negative_gate_loss.py)
 
-**一般电路的 $1/4$ 规模界仍开放。** 令 $s=S(2m)$、$B=3m^2+m-2$、$G=\max(0,\lceil3s/4\rceil-B)$。新的统一保证补回了 $\lceil m/2\rceil$ 扇门。对 $m\ge4$，若原始文字超过 $2m-2$ 的额外权重与仅由一个 AND 读取的正原位合计至少为 $\eta G$，则有一份配对补回至少 $\eta G/7$。精确最优电路的森林计数给出 $S(n)\ge(3n(n-1)+n)/2-3$，故旧基准的差额 $G=\Omega(m^2)$。[结构条件和差额推导](docs/AbsorbingReaders.md) · [共享位置的匹配计数](docs/PairTriggerMatching.md) · [弱猜想](#weak-pair-contraction-conjecture)
+**一般电路的 $1/4$ 规模界仍开放。** 令 $s=S(2m)$、$B=3m^2+m-2$、$G=\max(0,\lceil3s/4\rceil-B)$。对 $s$ 不加上界时，同配对的统一保证至少补回 $\lceil m/2\rceil$ 扇门。对 $m\ge4$，若原始文字超过 $2m-2$ 的额外权重与仅由一个 AND 读取的正原位合计至少为 $\eta G$，则有一份配对补回至少 $\eta G/7$。精确最优电路的森林计数给出 $S(n)\ge(3n(n-1)+n)/2-3$，故旧基准的差额 $G=\Omega(m^2)$。[结构条件和差额推导](docs/AbsorbingReaders.md) · [共享位置的匹配计数](docs/PairTriggerMatching.md) · [弱猜想](#weak-pair-contraction-conjecture)
 
-**一般布尔门数的新下界与有条件的四分之一极限。** 大图有 $N=n(n-1)$ 个原始弧位。同一配对的实际删门给出 $S(n)\ge(11/7)N-3n-4$，适用于 $n\ge2$。若沿一列偶数规模 $S(n)/N\to11/7$，则最佳存活比例 $r_+(n/2)\to1/4$。是否存在这样的规模列仍待确定。对每个 $n\ge64$ 且 $S(n)\le2N$ 的偶数规模，每份精确最优电路均可选到一份配对，至少删去 $B+\lceil G/30\rceil$ 门。[规模递推与四分之一极限](docs/SimultaneousZeroPins.md) · [差额的三十分之一与核验范围](docs/PrivateReaderForest.md)
+**一般布尔门数与四分之一预算。** 令 $n=2m$、$N_n=n(n-1)$。全图和交替图的两步规模递推给出无条件下界 $S(n)\ge(5/3)N_n-4n-12$，适用于全部 $n\ge2$。沿标准配对，若 $m\ge92$ 且 $S(2m)\le2N_{2m}$，每份精确最优电路都有一份配对实际至少删去 $B+\lceil G/14\rceil$ 门。沿 $S(2m)/N_{2m}\to2$ 的规模列，所保证的旧缺口覆盖率下极限至少为 $1/13$。例如 $m=1024$、假设 $S(2048)=2N_{2048}$ 时，证书距目标还差 2,901,508 门。[新递推、实删证明和实验](docs/MatchedMatrixBudget.md) · [此前的 $27/17$ 规模界](docs/QuarterBudget.md) · [此前的 $1/20$ 实删界](docs/CrossTestSharing.md)
 
 **补回差额 $1\%$ 的充分条件。** 对 $m\ge40$，若同一个平衡切割能用同侧弧置零的证书覆盖至少 $1/128$ 的内部额外读者和内层 NOT，则有一份配对至少删去 $B+G/100$ 门。对只读原始文字的区域，有些花瓣即使不能同时触发，也会迫使原弧在别处再被读取。有限域上的精确最优辅助电路给出了对照：超过五分之一的内部单位可以各有大量花瓣，而任意配对能在这批位置上收费的比例仍趋于零。[同配对门槛与哈密顿专属条件](docs/SunflowerCharges.md) · [有限域对照](docs/SunflowerCoreControl.md)
 
@@ -166,7 +184,7 @@ Sengupta 和 Venkateswaran 在 1994 年研究二分完美匹配时已用过“�
 
 ## 目录与来源
 
-- [Mobius/](Mobius/) 与 [Mobius.lean](Mobius.lean)、[Audit.lean](Audit.lean)：全部 122 个 Lean 4 形式化模块、总入口与传递公理审计。
+- [Mobius/](Mobius/) 与 [Mobius.lean](Mobius.lean)、[Audit.lean](Audit.lean)：全部 123 个 Lean 4 形式化模块、总入口与传递公理审计。
 - [experiments/](experiments/)：包含 [EncodedCuts.lean](experiments/EncodedCuts.lean) 及只用 Python 标准库的可复算组合检验、整数证书与模拟器脚本。
 - [docs/](docs/)：各子课题的详细推导与核查笔记，建议从以下几篇读起：
   - [docs/2026-11-23.md](docs/2026-11-23.md)：研究主线汇总与各分支之间的衔接关系。

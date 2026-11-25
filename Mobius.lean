@@ -67,6 +67,7 @@ import Mobius.HamiltonianSlice
 import Mobius.CycleCoverQueries
 import Mobius.PostRead
 import Mobius.PairContraction
+import Mobius.OrderedMatching
 import Mobius.ThreeFaceRealization
 import Mobius.ThreeFaceCompletion
 import Mobius.ThreeFaceMemory

@@ -1,6 +1,6 @@
 # Mobius: Lean 4 Experiments on 4-Bit Sign-Table Obstructions and Computational Complexity
 
-**English** | [中文](README.zh-CN.md) · [Weak conjecture](#weak-pair-contraction-conjecture) · [Strong conjecture](#strong-pair-contraction-conjecture) · [Fixed-margin conjecture](#fixed-margin-conjecture) · [Pair-contraction summary](#pair-contraction-summary)
+**English** | [中文](README.zh-CN.md) · [Weak conjecture](#weak-pair-contraction-conjecture) · [Strong conjecture](#strong-pair-contraction-conjecture) · [Fixed-margin conjecture](#fixed-margin-conjecture) · [Sublinear pair count and P ≠ NP](#sublinear-pair-criterion) · [Pair-contraction summary](#pair-contraction-summary)
 
 > I am not a professional mathematician, but seeing AI prove the Riemann Hypothesis left me both thrilled and uneasy. With leftover subscription quota about to expire, I decided to try my luck pulling gacha in computational complexity. Unfortunately, I know almost nothing about the field, so I could only push the work forward on simple intuitions. Whether what came out has any real significance isn't something I care too much about.
 
@@ -10,7 +10,7 @@ Research, Lean 4 formalization, and initial notes in this repository were develo
 
 <a name="pair-contraction-conjecture"></a>
 
-## Weak and strong pair-contraction conjectures for Hamiltonian cycle detection (open)
+## Three open pair-contraction conjectures for Hamiltonian cycle detection
 
 Let $H_n$ decide whether a loopless directed graph on $n$ vertices contains a Hamiltonian cycle. Let $S(n)$ be the minimum number of AND/OR/NOT gates needed to compute $H_n$ with unrestricted sharing. Each oriented pairing $\rho$ restricts $H_{2m}$ to the full $H_m$ problem. The smallest ratio of simplified to original gate count is $r_+(m)=\min_{C,\rho}\lvert R_+(C\vert_\rho)\rvert/S(2m)$, where $C$ ranges over **minimum-size circuits** for $H_{2m}$ and $\rho$ over all such pairings. [Pairing definition](docs/PairContraction.md) · [The simplifier $R_+$](docs/PairContraction.md#boolean-contraction-operator)
 
@@ -34,6 +34,16 @@ $r_+(m)\to 0$. For every $\epsilon>0$ there is an $m_0(\epsilon)$ such that, at 
 
 There is a constant $0<\sigma<1/4$, **independent of size**, such that $r_+(m)\le 1/4-\sigma$ for every sufficiently large $m$. The strong conjecture implies the fixed-margin conjecture, which in turn implies the weak conjecture. In terms of the $N=n(n-1)$ input arc bits, a fixed margin would give $S(n)=\Omega(N^{1+\delta})$, where $\delta=\tfrac12\log_2(1/(1-4\sigma))>0$. The proved reconstruction for single-output parity regions gives a margin of $\sigma_m=1/(8m-4)$ on their combined gate count. This margin tends to zero. [Fixed-margin derivation](docs/MultiplicativeGap.md#fixed-quarter-margin) · [Local theorem and coverage](docs/SignedCircuitSweeps.md)
 
+<a id="sublinear-pair-criterion"></a>
+
+## Reaching one quarter with sublinearly many pairs would imply P ≠ NP
+
+The weak conjecture allows all $n/2$ pairs. **The open hypothesis here** is that for every sufficiently large even $n$, some minimum-size circuit for $H_n$ needs only $k(n)=o(n)$ disjoint oriented pairs for $R_+$ to leave at most $S(n)/4$ gates. After contracting those pairs, the remaining circuit must still decide every graph on $n-k(n)$ vertices. Hence
+
+$$S(n)\ge 4S\bigl(n-k(n)\bigr).$$
+
+The recurrence compares minimum gate counts, so each step can use a different circuit. As $n$ grows, the number of fourfold steps between $n$ and $n/2$ tends to infinity. Iterating gives $S(n)=n^{\omega(1)}$, superpolynomial even in the $n(n-1)$ input bits. Since directed Hamiltonicity is in NP and every polynomial-time algorithm has polynomial-size circuits, the hypothesis would imply **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm P\ne\mathrm{NP}$**. If $k(n)=O(\sqrt n)$, the same recurrence gives a $2^{\Omega(\sqrt n)}$ gate lower bound. [Proof of the recurrence and growth bounds](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档) · [Polynomial-time circuit simulation, Theorem 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+
 ## TL;DR & Verification Status
 
 **What this does NOT do:** This repository does **not** prove $\mathrm{P} \ne \mathrm{NP}$, does not improve the overall upper bounds of existing upstream ETH constructions (the base 1,521 computed here is only a local comparison constant for a fixed 3-bit grouping), and does not establish new super-polynomial lower bounds for general models of computation.
@@ -48,7 +58,7 @@ There is a constant $0<\sigma<1/4$, **independent of size**, such that $r_+(m)\l
 
 **How many full boards must miss their optimum?** For a simple graph with $v$ vertices and $e$ edges, the construction uses $B=8v+57e$ unweighted boards. The minimum number of nonoptimal boards over one shared pair of tables equals the fewest vertices whose deletion makes the graph three-colorable. OpenAI family 106 then gives an NP-hard gap between zero and more than $v/2$ nonoptimal boards, at least $\sqrt{B/114}$ in the negative case. The general result has a written proof. Direct table checks and SAT verify minima of 1 for $K_4$ and 2 for $K_5$. [Proof and source](docs/FaceMultiplicity.md#color-deletion) · [Reproduce the checks](experiments/color_deletion.py)
 
-## Pair contraction for Hamiltonian cycle detection (as of 2026-11-25)
+## Pair contraction for Hamiltonian cycle detection (as of 2026-11-26)
 
 Let $H_n$ decide whether a loopless directed graph on $n$ vertices contains a Hamiltonian cycle. In the board encoding, each arc switch occupies one coordinate bit. A single pair of global tables makes every board optimal exactly when $H_n=1$. For $n=2m$, choose an oriented pairing $\rho=((a_i,b_i))_{i=1}^m$. Open each $a_i\to b_i$, leave $b_i\to a_j$ free for $i\ne j$, and close every other arc. Each tour must traverse each pair consecutively. Contracting the pairs leaves exactly $H_m$ on all smaller graphs. [Board encoding](docs/HamiltonianBoards.md) · [Pairing construction](docs/PairContraction.md)
 
@@ -60,6 +70,14 @@ Monotone circuits use binary AND and OR. General Boolean circuits here also allo
 
 For $m\ge3$, every minimum-size AND/OR/NOT circuit for $H_{2m}$ admits a pairing under which $R_0$ **deletes at least $3m^2+m-2+\lceil m/2\rceil$ gates** and preserves $H_m$ on every smaller input. While the entry-to-exit rectangle is pinned to the partner matrix, every unpinned arc remains essential. When a private input absorbs its first gate, each lost use of another input literal can be traced to one preselected reader. This guarantees an additional $\lceil m/2\rceil$ deletions under the same pairing. The general bound has a written proof and Lean checks the path and accounting lemmas. A separate sharp bound allows any $2m+1$ prescribed arc bits to be fixed together. Some sets of $2m+2$ bits cannot all be fixed. [New gate bound and checks](docs/AbsorbingReaders.md) · [Sharp bound for prescribed arcs](docs/JointNegativeContraction.md#同时固定原弧的紧界)
 
+Requiring correctness on all small graphs in all $2^m$ orientations of one fixed partition into pairs gives an exact comparison. One optimal $H_m$ circuit can serve all orientations. The minimum size on this promise is $S(m)+3m(m-1)$, and every optimal circuit retains exactly $S(m)$ gates in every orientation. Its surviving fraction has limit inferior at least $9/26$. Four pairings that maximize the number of distinct free arcs also admit one shared $H_m$ circuit. The full conjecture additionally requires correctness on graphs outside these tests. [Proofs and a change-of-partners example](docs/FourPairBudget.md)
+
+On one standard pairing, cut outputs that $R_0$ reduces to constants. If this removes $g$ original gates including newly unreachable ancestors, at least $\lceil g/3\rceil$ deletions can be added to the baseline of $3m^2-m$ fixed arc bits. In the second stage, fixing one cross matrix to a matching gives an additional credit approaching half the cut gates when its outputs read only that matrix. When they read both matrices with unrestricted sharing, a single-cycle port test gives a coefficient approaching $5/13$. The open step is to force a sufficiently large cut on one pairing of a minimum circuit. [Two-stage gate accounting](docs/AlternatingGateCut.md) · [Port test and coverage requirement](docs/MatchedMatrixBudget.md#两个方向可以任意通信的混合门)
+
+**A graph condition that forces shared gates to disappear.** Suppose one forward arc has a unique AND or OR reader, and its other operand in the minimum full-graph circuit uses only reverse arcs of a balanced split. Holding the split fixed, every reverse matching then deletes an additional $(1/2-o(1))m^2$ gates beyond the second-stage input count. For genuinely mixed operands, an eight-vertex example leaves 31 gates after $R_+$ where the raw-arc control leaves 20, although their decisions agree on all 4,096 smaller graphs. The modified source exceeds the minimum. [Full-graph pivot criterion and the 1,680-pairing comparison](docs/MatchedMatrixBudget.md#一扇只读对向弧的门能迫使多大的实际切口)
+
+**Mixed gates in the full circuit.** One standard pairing can pin every arc of a reverse matrix and any five additional forward arcs. If this exposes a region of $g$ gates, reading the hidden reverse bits through the rest of the full graph credits at least $g-5$ deletions beyond the fixed-input count. Six forward arcs can obstruct simultaneous pinning. For original ports reading both cross matrices and already constant on the standard orientation, the extra credit is at least $g-(3m-1)$ even with arbitrary mixing. A separate obstruction concerns the number of pairs needed: at a lower density of at least $1-\log_2(375/196)$ among even sizes, pinning up to two arc bits or contracting up to two pairs must leave more than a quarter, even after reoptimizing. [Mixed cuts and actual gate counts](docs/MixedGuardPooling.md) · [The two-pair obstruction](docs/MixedGuardPooling.md#前两个搭档已被上界排除)
+
 The eight-vertex experiment tracks 392 shared gates whose values vary among strongly connected graphs with cycle covers but no Hamiltonian cycle. Both implementations use the same prescribed pairing. The second feeds each arc bit through gates that return its original value on every input.
 
 | Eight-vertex circuit | Original gates | Tracked gates forced to constants (of 392) | Total gates left | Quarter budget |
@@ -69,9 +87,9 @@ The eight-vertex experiment tracks 392 shared gates whose values vary among stro
 
 Across all 1,680 pairings, the first implementation always leaves 33 gates. The best pairing for the second leaves 2,400. The original Held–Karp circuit uses 2,260 gates in the same basis, so both measured circuits exceed the minimum size for the function. [Gate-by-gate results](docs/JointNegativeContraction.md#八点实例的同一份配对) · [Held–Karp gate count](docs/PairContraction.md#2-最优单调电路的逐级检验) · [Python check](experiments/negative_gate_loss.py)
 
-**The $1/4$ size bound for general circuits remains open.** Write $s=S(2m)$, $B=3m^2+m-2$ and $G=\max(0,\lceil3s/4\rceil-B)$. The new uniform bound covers $\lceil m/2\rceil$ gates of this gap. For $m\ge4$, if the raw-literal weight beyond $2m-2$ plus the number of positive inputs read only by a single AND is at least $\eta G$, some pairing covers at least $\eta G/7$. A formula-forest count for minimum circuits gives $S(n)\ge(3n(n-1)+n)/2-3$, so the gap from the old baseline satisfies $G=\Omega(m^2)$. [Structural bound and gap calculation](docs/AbsorbingReaders.md) · [Matching counts for shared uses](docs/PairTriggerMatching.md) · [Weak conjecture](#weak-pair-contraction-conjecture)
+**The $1/4$ size bound for general circuits remains open.** Write $s=S(2m)$, $B=3m^2+m-2$ and $G=\max(0,\lceil3s/4\rceil-B)$. Without an upper bound on $s$, the same-pair estimate covers at least $\lceil m/2\rceil$ gates of this gap. For $m\ge4$, if the raw-literal weight beyond $2m-2$ plus the number of positive inputs read only by a single AND is at least $\eta G$, some pairing covers at least $\eta G/7$. A formula-forest count for minimum circuits gives $S(n)\ge(3n(n-1)+n)/2-3$, so the gap from the old baseline satisfies $G=\Omega(m^2)$. [Structural bound and gap calculation](docs/AbsorbingReaders.md) · [Matching counts for shared uses](docs/PairTriggerMatching.md) · [Weak conjecture](#weak-pair-contraction-conjecture)
 
-**A general circuit lower bound and a conditional quarter limit.** Let $N=n(n-1)$ be the number of input arc bits. Actual gate deletions under one pairing give $S(n)\ge(11/7)N-3n-4$ for $n\ge2$. Along any even-size sequence on which $S(n)/N\to11/7$, the best surviving fraction $r_+(n/2)$ tends to $1/4$. Whether such a sequence exists is open. At every even $n\ge64$ with $S(n)\le2N$, each minimum circuit admits a pairing that deletes at least $B+\lceil G/30\rceil$ gates. [Size recurrence and quarter limit](docs/SimultaneousZeroPins.md) · [One-thirtieth bound and verification scope](docs/PrivateReaderForest.md)
+**General Boolean circuit size and the quarter budget.** Let $N_n=n(n-1)$. Comparing the full and alternating Hamiltonian decisions gives $S(n)\ge(5/3)N_n-4n-12$ for every $n\ge2$. If $m\ge92$ and $S(2m)\le2N_{2m}$, every minimum circuit admits one standard pairing that actually deletes at least $B+\lceil G/14\rceil$ gates. Along any sequence with $S(2m)/N_{2m}\to2$, the certified fraction of the old gap has limit inferior at least $1/13$. For example, if $m=1024$ and $S(2048)=2N_{2048}$, the certificate falls 2,901,508 gates short of the target. [Recurrence, actual deletions and experiments](docs/MatchedMatrixBudget.md) · [Earlier $27/17$ size bound](docs/QuarterBudget.md) · [Earlier $1/20$ deletion bound](docs/CrossTestSharing.md)
 
 **A sufficient condition for covering one percent of the gap.** For $m\ge40$, if one balanced cut gives same-side zero certificates for at least $1/128$ of the extra internal uses and paid internal negations, some pairing deletes at least $B+G/100$ gates. Hamiltonian input sensitivity can also force extra raw reads outside a region even when its certificates cannot trigger together. In a minimum-size auxiliary circuit over a finite-field construction, more than one fifth of the internal units each have many petals, yet every pairing triggers a vanishing fraction of those marked uses. [Common-pair bound and the Hamiltonian criterion](docs/SunflowerCharges.md) · [Finite-field control](docs/SunflowerCoreControl.md)
 
@@ -166,7 +184,7 @@ Requirements: pinned Lean 4 toolchain `v4.35.0-rc2` (see [lean-toolchain](lean-t
 
 ## Repository Layout & Sources
 
-- [Mobius/](Mobius/), [Mobius.lean](Mobius.lean), [Audit.lean](Audit.lean): All 122 Lean 4 modules, root entry point, and transitive axiom audit.
+- [Mobius/](Mobius/), [Mobius.lean](Mobius.lean), [Audit.lean](Audit.lean): All 123 Lean 4 modules, root entry point, and transitive axiom audit.
 - [experiments/](experiments/): [EncodedCuts.lean](experiments/EncodedCuts.lean) and standard-library Python scripts for combinatorial checks, integer certificates, and controls.
 - [docs/](docs/): Detailed derivations and research notes (**written in Chinese**). Good starting points:
   - [docs/2026-11-23.md](docs/2026-11-23.md): Overview of results and how the branches connect.

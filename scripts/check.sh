@@ -66,6 +66,13 @@ python3 experiments/single_cycle_controls.py
 python3 experiments/absorbing_readers.py
 python3 experiments/private_reader_forest.py
 python3 experiments/simultaneous_zero_pins.py
+python3 experiments/paired_tag_ports.py
+python3 experiments/paired_matrix_tests.py
+python3 experiments/flexible_pair_budget.py
+python3 experiments/four_pair_budget.py
+python3 experiments/alternating_cut.py
+python3 experiments/matched_matrix_budget.py
+python3 experiments/paired_guard_pooling.py
 python3 experiments/sunflower_charges.py
 python3 experiments/sunflower_core_control.py
 python3 experiments/pair_certificate.py
