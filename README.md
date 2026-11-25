@@ -1,6 +1,6 @@
 # Mobius: Lean 4 Experiments on 4-Bit Sign-Table Obstructions and Computational Complexity
 
-**English** | [中文](README.zh-CN.md) · [Weak conjecture](#weak-pair-contraction-conjecture) · [Strong conjecture](#strong-pair-contraction-conjecture) · [Fixed-margin conjecture](#fixed-margin-conjecture) · [Sublinear pair count and P ≠ NP](#sublinear-pair-criterion) · [Pair-contraction summary](#pair-contraction-summary)
+**English** | [中文](README.zh-CN.md) · [Weak conjecture](#weak-pair-contraction-conjecture) · [Strong conjecture](#strong-pair-contraction-conjecture) · [Fixed-margin conjecture](#fixed-margin-conjecture) · [Gate savings with sublinearly many pairs](#sublinear-pair-criterion) · [Pair-contraction summary](#pair-contraction-summary)
 
 > I am not a professional mathematician, but seeing AI prove the Riemann Hypothesis left me both thrilled and uneasy. With leftover subscription quota about to expire, I decided to try my luck pulling gacha in computational complexity. Unfortunately, I know almost nothing about the field, so I could only push the work forward on simple intuitions. Whether what came out has any real significance isn't something I care too much about.
 
@@ -36,13 +36,17 @@ There is a constant $0<\sigma<1/4$, **independent of size**, such that $r_+(m)\l
 
 <a id="sublinear-pair-criterion"></a>
 
-## Reaching one quarter with sublinearly many pairs would imply P ≠ NP
+## Deleting 1% of the gates with sublinearly many pairs would imply P ≠ NP
 
-The weak conjecture allows all $n/2$ pairs. **The open hypothesis here** is that for every sufficiently large even $n$, some minimum-size circuit for $H_n$ needs only $k(n)=o(n)$ disjoint oriented pairs for $R_+$ to leave at most $S(n)/4$ gates. After contracting those pairs, the remaining circuit must still decide every graph on $n-k(n)$ vertices. Hence
+Suppose that for every sufficiently large even $n$, there is a minimum-size circuit for $H_n$ and a choice of $k(n)=o(n)$ disjoint oriented pairs for which $R_+$ deletes at least **1% of the gates**. The surviving circuit must decide every graph on $n-k(n)$ vertices. Lean verifies that these hypotheses imply $S(n)=n^{\omega(1)}$, **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm P\ne\mathrm{NP}$**. Whether $R_+$ achieves this saving remains open. [Lean theorem and 1% example](experiments/SublinearPairSeparation.lean#L1147) · [Polynomial-time circuit simulation, Theorem 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
 
-$$S(n)\ge 4S\bigl(n-k(n)\bigr).$$
+Any fixed saving $0<\delta<1$ gives $S(n-k(n))\le(1-\delta)S(n)$. Each step can use a different minimum-size circuit. With $k(n)=o(n)$, the number of steps needed to halve $n$ grows without bound. The earlier quarter-survival criterion takes $\delta=3/4$ and gives $2^{\Omega(\sqrt n)}$ gates if $k(n)=O(\sqrt n)$. The weak conjecture above uses all $n/2$ pairs in one step, for which a one-quarter ratio is compatible with quadratic size. [Growth proof in Lean](experiments/SublinearPairSeparation.lean#L967) · [Original quarter-survival argument](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档)
 
-The recurrence compares minimum gate counts, so each step can use a different circuit. As $n$ grows, the number of fourfold steps between $n$ and $n/2$ tends to infinity. Iterating gives $S(n)=n^{\omega(1)}$, superpolynomial even in the $n(n-1)$ input bits. Since directed Hamiltonicity is in NP and every polynomial-time algorithm has polynomial-size circuits, the hypothesis would imply **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm P\ne\mathrm{NP}$**. If $k(n)=O(\sqrt n)$, the same recurrence gives a $2^{\Omega(\sqrt n)}$ gate lower bound. [Proof of the recurrence and growth bounds](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档) · [Polynomial-time circuit simulation, Theorem 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+The saving can even tend to zero. Let $\delta_n$ be the fraction of gates actually deleted by the chosen $k(n)$ pairs at size $n$. The same separation follows if, along the even sizes,
+
+$$\frac{(n+1)\delta_n}{k(n)+1}\longrightarrow\infty.$$
+
+For example, $k(n)=\lceil\sqrt n\rceil$ and $\delta_n=n^{-1/4}$ satisfy the condition. A polynomial can exceed any one prescribed constant in this ratio. For $n>d$, reducing $n$ by one reduces $T_d(n)=n(n-1)\cdots(n-d+1)$ by exactly a $d/n$ fraction, and the fixed degree $d$ can be chosen arbitrarily large. [Relative-saving theorem](experiments/SublinearPairSeparation.lean#L1143) · [Polynomial example](experiments/SublinearPairSeparation.lean#L1193)
 
 ## TL;DR & Verification Status
 

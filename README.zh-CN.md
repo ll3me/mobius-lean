@@ -1,6 +1,6 @@
 # Mobius：四比特符号表障碍与计算复杂度的 Lean 4 实验
 
-[English](README.md) | **中文** · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture) · [固定余量猜想](#fixed-margin-conjecture) · [次线性配对数与 P ≠ NP](#sublinear-pair-criterion) · [配对收缩阶段小结](#pair-contraction-summary)
+[English](README.md) | **中文** · [弱猜想](#weak-pair-contraction-conjecture) · [强猜想](#strong-pair-contraction-conjecture) · [固定余量猜想](#fixed-margin-conjecture) · [次线性配对的删门判据](#sublinear-pair-criterion) · [配对收缩阶段小结](#pair-contraction-summary)
 
 > 我不是专业的数学工作者，但是AI证明了黎曼猜想使我既欣喜又害怕。正好我的订阅额度要用不完了，我就决定在计算复杂度这个领域抽卡试试。不幸的是我对这个领域几乎一窍不通，所以只能凭一些简单的直觉推进工作。至于做出来的东西有没有意义，这个我倒不是觉得很重要。
 
@@ -36,13 +36,17 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 <a id="sublinear-pair-criterion"></a>
 
-## 若用次线性数量的搭档达到四分之一，则 P ≠ NP
+## 若用次线性数量的搭档能删掉 1% 的门，则 P ≠ NP
 
-弱猜想允许用完 $n/2$ 对搭档。**这里尚待证明的条件**是，对每个充分大的偶数 $n$，都有一份 $H_n$ 的精确最优电路，只需收缩 $k(n)=o(n)$ 对互不相交的有向搭档，$R_+$ 就至多留下 $S(n)/4$ 扇门。剩余电路必须判对全部 $n-k(n)$ 点图，故
+假设对每个充分大的偶数 $n$，都能在一份 $H_n$ 的精确最优电路上选出 $k(n)=o(n)$ 对互不相交的有向搭档，使 $R_+$ **实际删掉至少 1% 的门**，且剩余电路仍能判对全部 $n-k(n)$ 点图。Lean 已验证，这些条件推出 $S(n)=n^{\omega(1)}$、**$\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm P\ne\mathrm{NP}$**。$R_+$ 能否达到这一删门比例仍是开放问题。[Lean 定理与 1% 实例](experiments/SublinearPairSeparation.lean#L1147) · [多项式时间的电路模拟，定理 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
 
-$$S(n)\ge 4S\bigl(n-k(n)\bigr).$$
+任意固定的删门比例 $0<\delta<1$ 都给出 $S(n-k(n))\le(1-\delta)S(n)$。每一步都可以另选一份精确最优电路。当 $k(n)=o(n)$ 时，从 $n$ 点降到 $n/2$ 点所需的步数趋于无穷。此前「保留四分之一」的判据取 $\delta=3/4$，若再有 $k(n)=O(\sqrt n)$，可得 $2^{\Omega(\sqrt n)}$ 扇门的下界。上面的弱猜想一步用完 $n/2$ 对搭档，此时保留四分之一仍与二次门数相容。[Lean 增长率证明](experiments/SublinearPairSeparation.lean#L967) · [原四分之一判据的推导](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档)
 
-递推比较的是各规模的最小门数，每一步都可以另选最优电路。从 $n$ 点降到 $n/2$ 点，可累计的四倍因子个数随 $n$ 增大而趋于无穷。逐尺度迭代便得 $S(n)=n^{\omega(1)}$，按 $n(n-1)$ 个输入弧位计也是超多项式下界。有向哈密顿回路判定属于 NP，而每个多项式时间算法都有多项式规模电路，因此该条件将推出 **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm P\ne\mathrm{NP}$**。若只需 $k(n)=O(\sqrt n)$ 对，同一递推还给出 $2^{\Omega(\sqrt n)}$ 扇门的下界。[递推与增长率证明](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档) · [多项式时间的电路模拟，定理 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+删门比例甚至可以趋于零。记 $\delta_n$ 为该规模上所选的 $k(n)$ 对搭档实际删掉的门数占比。只要沿偶数规模满足下式，就能推出同样的分离结论。
+
+$$\frac{(n+1)\delta_n}{k(n)+1}\longrightarrow\infty.$$
+
+例如，$k(n)=\lceil\sqrt n\rceil$、$\delta_n=n^{-1/4}$ 就满足条件。若只要求这个比值超过某个固定常数，多项式也能做到。对 $n>d$，把 $n$ 减一，多项式 $T_d(n)=n(n-1)\cdots(n-d+1)$ 的值就恰好减少 $d/n$ 的比例，而固定次数 $d$ 可以选得任意大。[相对删门定理](experiments/SublinearPairSeparation.lean#L1143) · [多项式对照](experiments/SublinearPairSeparation.lean#L1193)
 
 ## 省流 / 实测情况
 
