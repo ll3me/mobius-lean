@@ -100,6 +100,12 @@ def zero_pin_values(dag):
     all_pins = (1 << len(dag.edges))-1
     zero = [all_pins, 0] + [1 << i for i in range(len(dag.edges))]
     one = [0, all_pins] + [0]*len(dag.edges)
+    return propagate_pin_values(dag, zero, one)
+
+
+def propagate_pin_values(dag, zero, one):
+    """Extend masks for constant and input wires through all gates, one bit per partial assignment."""
+    assert len(zero) == len(one) == 2 + len(dag.edges)
     for op, *args in dag.nodes[len(zero):]:
         a = args[0]
         if op == 'not':

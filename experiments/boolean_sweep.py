@@ -105,7 +105,8 @@ def windows_at(dag, root, uses):
     return sorted(closed)
 
 
-def find_replacement(dag, live):
+def window_replacements(dag, live):
+    """Yield every strictly cheaper closed window in the order used by R+."""
     uses = Counter(a for g in live for a in dag.nodes[g][1:])
     for root in live:
         for window in windows_at(dag, root, uses):
@@ -122,7 +123,14 @@ def find_replacement(dag, live):
                     tables[g] = combine(a, tables[args[1]])
             program = catalog.get(tables[root])
             if program is not None and len(program[0]) < len(window):
-                return root, boundary, program
+                yield window, boundary, program
+
+
+def find_replacement(dag, live):
+    edit = next(window_replacements(dag, live), None)
+    if edit is not None:
+        window, boundary, program = edit
+        return window[-1], boundary, program
     return None
 
 

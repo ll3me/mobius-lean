@@ -59,6 +59,15 @@ python3 experiments/oriented_contraction.py
 python3 experiments/staged_contraction.py
 python3 experiments/joint_pair_support.py
 python3 experiments/negative_gate_loss.py
+python3 experiments/paired_cover_witnesses.py
+python3 experiments/observable_rewrites.py
+python3 experiments/pair_trigger_matching.py
+python3 experiments/single_cycle_controls.py
+python3 experiments/absorbing_readers.py
+python3 experiments/private_reader_forest.py
+python3 experiments/simultaneous_zero_pins.py
+python3 experiments/sunflower_charges.py
+python3 experiments/sunflower_core_control.py
 python3 experiments/pair_certificate.py
 python3 experiments/path_list_masking.py
 python3 experiments/read_one_contraction.py

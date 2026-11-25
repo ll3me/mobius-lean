@@ -82,7 +82,8 @@ def path_columns(dag):
     return bit-1, [columns[e] for e in dag.edges]
 
 
-def weights_and_triggers(dag, out, varies):
+def weights_and_triggers(dag, out, varies, pin_values=None, reserve_rank=int.bit_count):
+    """Keep all but one use per source, reserving the lowest-ranked use."""
     gates, uses = live_wires(dag, out)
     raw = {w: uses[w]-1 for w in dag.inputs.values()}
     weight = {}
@@ -93,7 +94,7 @@ def weights_and_triggers(dag, out, varies):
         else:
             weight[g] = max(0, uses[g]-1)+int(op == 'not')
     assert sum(raw.values())+sum(weight.values()) == len(gates)-len(raw)+1
-    zero, one = zero_pin_values(dag)
+    zero, one = zero_pin_values(dag) if pin_values is None else pin_values
     outgoing = defaultdict(list)
     for h in gates:
         op, *args = dag.nodes[h]
@@ -109,7 +110,7 @@ def weights_and_triggers(dag, out, varies):
     for g, choices in outgoing.items():
         assert len(choices) == uses[g]
         # Reserve the weakest use, one per source, for the wire-count identity.
-        choices.sort(key=int.bit_count)
+        choices.sort(key=reserve_rank)
         tokens.extend(choices[1:])
     for g in weight:
         if dag.nodes[g][0] == 'not' and varies[g]:

@@ -434,4 +434,218 @@ theorem monitored_replay_iff (n : Nat) (law : (i : Nat) → (Fin i → Bool) →
   · intro consistent i hi sel
     exact (agree (fun j hj hsel => Or.inr (consistent j hj hsel)) i hi).symm.trans (consistent i hi sel)
 
+/-- A directed path, including its endpoints, which avoids every cut wire. -/
+inductive UncutPath (edge : V → V → Prop) (cut : V → Prop) (start : V) : V → Prop where
+  | here (available : ¬cut start) : UncutPath edge cut start start
+  | step {u v} (prefixPath : UncutPath edge cut start u) (arc : edge u v)
+      (available : ¬cut v) : UncutPath edge cut start v
+
+theorem UncutPath.weaken {edge : V → V → Prop} {first second : V → Prop} {u v : V}
+    (path : UncutPath edge first u v) (subset : ∀ w, second w → first w) :
+    UncutPath edge second u v := by
+  induction path with
+  | here ok => exact .here (fun h => ok (subset _ h))
+  | step _ arc ok ih => exact .step ih arc (fun h => ok (subset _ h))
+
+theorem UncutPath.append {edge : V → V → Prop} {cut : V → Prop} {u v w : V}
+    (pre : UncutPath edge cut u v) (post : UncutPath edge cut v w) :
+    UncutPath edge cut u w := by
+  induction post with
+  | here => exact pre
+  | step _ arc ok ih => exact .step ih arc ok
+
+/-- A difference between two evaluations traces back to the varied source
+along an uncut path when the selected wires agree in both evaluations. -/
+theorem uncut_path_of_difference (edge : Nat → Nat → Prop) (cut : Nat → Prop)
+    (source : Nat) (left right : Nat → Bool)
+    (agree : ∀ g, cut g → left g = right g)
+    (reader : ∀ g, g ≠ source → left g ≠ right g →
+      ∃ p, p < g ∧ edge p g ∧ left p ≠ right p)
+    (out : Nat) : left out ≠ right out → UncutPath edge cut source out := by
+  induction out using Nat.strongRecOn with
+  | ind g ih =>
+    intro different
+    have ok : ¬cut g := fun h => different (agree g h)
+    by_cases sourceHere : g = source
+    · subst g
+      exact .here ok
+    · obtain ⟨p, hp, arc, prev⟩ := reader g sourceHere different
+      exact .step (ih p hp prev) arc ok
+
+/-- On a preselected path to the first eligible reader, only that reader
+can be cut. If it still reaches the output, the original use does too. -/
+theorem first_reader_preserves_use {edge : V → V → Prop} {heads cut : V → Prop}
+    {use reader out : V} (onlyHeads : ∀ v, cut v → heads v)
+    (first : UncutPath edge (fun v => heads v ∧ v ≠ reader) use reader)
+    (kept : ¬cut reader) (suffixPath : UncutPath edge cut reader out) :
+    UncutPath edge cut use out := by
+  apply UncutPath.append (first.weaken ?_) suffixPath
+  intro v hv
+  exact ⟨onlyHeads v hv, fun eq => kept (eq ▸ hv)⟩
+
+/-- The other pruned gates pay for at least half of the lost literal
+positions. All quantities on both sides refer to one restriction. -/
+theorem absorbing_reader_budget (loss fixed raw selected pruned lostUses : Nat)
+    (ledger : fixed + raw + selected + pruned ≤ loss + lostUses)
+    (capacity : lostUses ≤ 2 * pruned) :
+    2 * (fixed + raw + selected) ≤ 2 * loss + lostUses := by omega
+
+/-- A raw variable read in exactly one counted region must also have a
+reader outside that region when the region can be pinned without it. -/
+theorem bypass_reader_count (regions reads : Nat)
+    (distinctReads : regions ≤ reads) (bypass : regions = 1 → 2 ≤ reads) :
+    regions ≤ 2 * (reads - 1) := by omega
+
+/-- Below the raw-literal threshold the internal budget must exceed
+197/150 of the gap. All the following tests use the old baseline. -/
+theorem residual_internal_weight (gap delta internal : Nat)
+    (total : 4 * gap ≤ 3 * (delta + internal)) (below : 50 * delta < gap) :
+    197 * gap < 150 * internal := by omega
+
+/-- For a prescribed cut at m >= 40, each certified position contributes
+at least 39/40 in expectation after retaining both of its readers. -/
+theorem monochrome_one_percent (gap internal covered extra : Nat)
+    (weight : 197 * gap < 150 * internal) (coverage : internal ≤ 128 * covered)
+    (earned : 39 * covered ≤ 40 * extra) : gap ≤ 100 * extra := by omega
+
+/-- For m >= 158, a trigger probability of 1/4 less the two-reader
+allowance 1/m is at least 77/316. -/
+theorem quarter_trigger_one_percent (gap internal covered extra : Nat)
+    (weight : 197 * gap < 150 * internal) (coverage : internal ≤ 32 * covered)
+    (earned : 77 * covered ≤ 316 * extra) : gap ≤ 100 * extra := by omega
+
+/-- Enough distinct exposed raw reads exhaust the small-delta case,
+regardless of the geometric compatibility of their certificates. -/
+theorem private_region_one_percent (gap base delta internal exposed : Nat)
+    (total : 4 * gap ≤ 3 * (delta + internal))
+    (coverage : internal ≤ 32 * exposed) (raw : exposed ≤ 2 * (base + delta))
+    (scale : 1920 * base ≤ gap) : gap ≤ 50 * delta := by omega
+
+/-- Cut all uses of one wire, holding the rest of the primary input fixed. -/
+theorem observable_substitution (context : Bool → Bool) (old new : Bool) :
+    context old ≠ context new ↔ old ≠ new ∧ context false ≠ context true := by
+  cases old <;> cases new <;> cases h₀ : context false <;> cases h₁ : context true <;> simp_all
+
+/-- A window consumes at most three marked regions; a normalization deletion
+can touch the region of the deleted gate and the region of its new driver. -/
+theorem window_step_budget (removed inserted normalized spoiled : Nat)
+    (width : removed ≤ 3) (cheaper : inserted < removed)
+    (touch : spoiled ≤ removed + 2 * normalized) :
+    spoiled + 3 * inserted ≤ 3 * (removed + normalized) := by omega
+
+/-- Telescope the packing budget through the actual sequence of rewrites. -/
+theorem window_packing_budget (size marks : Nat → Nat) (rounds : Nat)
+    (step : ∀ i < rounds, marks i + 3 * size (i+1) ≤ marks (i+1) + 3 * size i)
+    (finished : marks rounds = 0) : marks 0 + 3 * size rounds ≤ 3 * size 0 := by
+  have telescope (j : Nat) (hj : j ≤ rounds) :
+      marks 0 + 3 * size j ≤ marks j + 3 * size 0 := by
+    induction j with
+    | zero => omega
+    | succ j ih =>
+      have prev := ih (by omega)
+      have thisStep := step j (by omega)
+      omega
+  have last := telescope rounds (by omega)
+  omega
+
+/-- The same binary signal cannot be decoded as AND in one context and OR in another. -/
+theorem and_or_distinct_partitions (p : Bool → Bool → Bool) (a o : Bool → Bool)
+    (ha : ∀ x y, a (p x y) = (x && y)) (ho : ∀ x y, o (p x y) = (x || y)) : False := by
+  have a₀ := ha false false
+  have a₁ := ha false true
+  have a₂ := ha true true
+  have o₀ := ho false false
+  have o₁ := ho false true
+  have o₂ := ho true true
+  cases h₀ : p false false <;> cases h₁ : p false true <;> cases h₂ : p true true <;>
+    simp_all
+
+/-- No allocated side can consist of just one use of an exposed root.
+Unused leaves and surplus leaves in allocated sides pay for these uses. -/
+theorem private_or_single_leaf (singles pos exempt leaves slack uses : Nat)
+    (allocation : leaves + exempt = singles + pos + slack)
+    (exports : 2 * exempt ≤ uses + 2) (capacity : uses ≤ 2 * slack) :
+    singles + pos ≤ leaves + 1 := by omega
+
+/-- An eight-arc OR cofactor bounds all-positive sides. A second side with
+one leaf also needs a source of the right sign. Both counts use the same forest. -/
+theorem private_or_leaf_budget (singles pos exempt leaves slack cheap stemNeg sideNeg
+    neg fees excess forks : Nat)
+    (allocation : leaves + exempt = singles + pos + slack)
+    (exports : 2 * exempt ≤ cheap + 2 * stemNeg + 2)
+    (shortSides : 7 * cheap ≤ 8 * (slack + sideNeg))
+    (nots : stemNeg + sideNeg ≤ neg)
+    (secondSides : pos + forks ≤ exempt + 2 * slack + 3 * neg + 2 * fees + excess) :
+    6 * singles + 7 * pos + forks ≤ 6 * leaves + 10 * neg + 2 * fees + excess + 7 := by omega
+
+/-- Translate the leaf positions back to physical gates, with direct literals
+charged in F and all other negations charged in the shared circuit budget. -/
+theorem private_or_size_budget (N V F W J singles pos leaves a forks : Nat)
+    (weights : V = F + W + J) (leafBound : leaves ≤ W + forks + 2 * F) (fanout : forks ≤ W)
+    (oneRead : N ≤ singles + F) (firstOr : N ≤ pos + a + F)
+    (forest : 6 * singles + 7 * pos + forks ≤ 6 * leaves + 10 * J + 2 * F + W + 7) :
+    13 * N ≤ 12 * V + 15 * F + 7 * a + 7 := by omega
+
+/-- At n >= 64 and s <= 2N the OR forest and the same-pair first-reader
+bound together cover at least one thirtieth of the gap to a quarter. -/
+theorem private_or_small_size_fraction (N n s V F delta a gap extra : Nat)
+    (gateCount : V + N = s + 1) (literalCount : F + 2 = n + delta)
+    (forest : 13 * N ≤ 12 * V + 15 * F + 7 * a + 7)
+    (small : s ≤ 2 * N) (scale : 63 * n ≤ N)
+    (quarter : 4 * gap ≤ 3 * N) (actual : 15 * delta + 7 * a ≤ 30 * extra) :
+    gap ≤ 30 * extra := by omega
+
+/-- Comparing actual deletions with the smaller decision circuit gives a
+recurrence in the two optimum sizes. -/
+theorem paired_zero_size_step (N n s small a loss : Nat)
+    (heads : 10 * N ≤ a + 6 * s + 4 * n + 13)
+    (readers : 3 * N + 3 * a ≤ 4 * loss + 4 * n + 8)
+    (correct : small + loss ≤ s) :
+    33 * N + 4 * small ≤ 22 * s + 16 * n + 47 := by omega
+
+/-- A size certificate for the finite quarter, with the very same gate loss. -/
+theorem paired_zero_quarter (N n s a loss : Nat)
+    (heads : 10 * N ≤ a + 6 * s + 4 * n + 13)
+    (readers : 3 * N + 3 * a ≤ 4 * loss + 4 * n + 8)
+    (size : 21 * s + 16 * n + 47 ≤ 33 * N) : 3 * s ≤ 4 * loss := by omega
+
+/-- The induction hypothesis at m implies the sharper even-size estimate at 2m. -/
+theorem paired_zero_even_density (N n smallN m s small : Nat)
+    (double : n = 2 * m) (arcs : N = 4 * smallN + n)
+    (step : 33 * N + 4 * small ≤ 22 * s + 16 * n + 47)
+    (ih : 11 * smallN ≤ 7 * small + 21 * m + 28) :
+    22 * N ≤ 14 * s + 21 * n + 42 := by omega
+
+/-- Splitting one vertex gives the required odd-size induction step. -/
+theorem paired_zero_odd_density (N n s nextSize : Nat)
+    (evenBound : 22 * N ≤ 14 * s + 21 * n + 42)
+    (split : s + 2 * n ≤ nextSize) :
+    11 * (N + 2 * n) ≤ 7 * nextSize + 21 * (n+1) + 28 := by omega
+
+/-- Induct all the way down to the small orders. N denotes the number of
+loopless input arcs. The structural circuit results supply the two size steps. -/
+theorem paired_zero_density (N s : Nat → Nat)
+    (base : ∀ n, 2 ≤ n → n ≤ 7 → 11 * N n ≤ 7 * s n + 21 * n + 28)
+    (doubleArcs : ∀ m, 4 ≤ m → N (2*m) = 4 * N m + 2*m)
+    (nextArcs : ∀ k, 8 ≤ k → N (k+1) = N k + 2*k)
+    (evenStep : ∀ m, 4 ≤ m → 33 * N (2*m) + 4 * s m ≤ 22 * s (2*m) + 16 * (2*m) + 47)
+    (split : ∀ k, 8 ≤ k → s k + 2*k ≤ s (k+1)) :
+    ∀ n, 2 ≤ n → 11 * N n ≤ 7 * s n + 21 * n + 28 := by
+  intro n
+  induction n using Nat.strongRecOn with
+  | ind n ih =>
+    intro hn
+    by_cases small : n ≤ 7
+    · exact base n hn small
+    · let m := n / 2
+      have hm : 4 ≤ m := by dsimp [m]; omega
+      have prev := ih m (by dsimp [m]; omega) (by omega)
+      have evenBound := paired_zero_even_density _ _ _ _ _ _ rfl (doubleArcs m hm) (evenStep m hm) prev
+      have parity : n = 2*m ∨ n = 2*m+1 := by dsimp [m]; omega
+      rcases parity with h | h
+      · rw [h]
+        omega
+      · rw [h, nextArcs _ (by omega)]
+        exact paired_zero_odd_density _ _ _ _ evenBound (split _ (by omega))
+
 end Mobius.PairContraction

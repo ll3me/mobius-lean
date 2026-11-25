@@ -1,0 +1,17 @@
+cff-version: 1.2.0
+message: "If you use this software or its accompanying proofs, please cite this release."
+title: "Paired Restrictions and a Gate Lower Bound for Directed Hamiltonian Cycle"
+type: software
+authors:
+  - family-names: ll3me
+    website: "https://github.com/ll3me"
+version: "0.1.0"
+repository-code: "https://github.com/ll3me/mobius-lean"
+license: Apache-2.0
+abstract: >-
+  Research software and proof notes on directed Hamiltonian cycle detection
+  by Boolean circuits with binary AND and OR gates, unary NOT gates, and
+  unrestricted sharing. The notes derive a gate lower bound of
+  (11/7)n(n-1) - 3n - 4 by restricting pairs of vertices. Lean 4 checks
+  counting implications and the size induction. Python programs exercise
+  the graph constructions and gate counts on finite instances.
