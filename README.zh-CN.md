@@ -6,7 +6,7 @@
 
 本项目的研究、代码实现与初始文档由 GPT 6.2-Astra 协助完成。本仓库截止目前（2026/11/25）花费约1.22B token。
 
-**引用 v0.1.0** · [Zenodo 版本 DOI 10.5281/zenodo.24526295](https://doi.org/10.5281/zenodo.24526295) · [GitHub 发布说明](https://github.com/ll3me/mobius-lean/releases/tag/v0.1.0)
+**v0.2.0** · [本版发布说明与引用](https://github.com/ll3me/mobius-lean/releases/tag/v0.2.0) · [Zenodo 版本记录](https://doi.org/10.5281/zenodo.24526294) · [v0.1.0 归档](https://doi.org/10.5281/zenodo.24526295)
 
 <a name="pair-contraction-conjecture"></a>
 
@@ -38,7 +38,9 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 
 ## 若用次线性数量的搭档能删掉 1% 的门，则 P ≠ NP
 
-假设对每个充分大的偶数 $n$，都能在一份 $H_n$ 的精确最优电路上选出 $k(n)=o(n)$ 对互不相交的有向搭档，使 $R_+$ **实际删掉至少 1% 的门**，且剩余电路仍能判对全部 $n-k(n)$ 点图。Lean 已验证，这些条件推出 $S(n)=n^{\omega(1)}$、**$\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm P\ne\mathrm{NP}$**。$R_+$ 能否达到这一删门比例仍是开放问题。[Lean 定理与 1% 实例](experiments/SublinearPairSeparation.lean#L1147) · [多项式时间的电路模拟，定理 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+**次线性配对收缩仍是开放猜想。** 它断言，对每个充分大的偶数 $n$，都能在一份 $H_n$ 的精确最优电路上找到 $k(n)=o(n)$ 对互不相交的有向搭档，使 $R_+$ **实际删掉至少 1% 的门**，且剩余电路仍能判对全部 $n-k(n)$ 点图。
+
+**Lean 证明的是条件蕴含。** 证明把上述删门条件作为显式假设，由此推出 $S(n)=n^{\omega(1)}$、$\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而推出 $\mathrm P\ne\mathrm{NP}$。[Lean 定理与 1% 实例](experiments/SublinearPairSeparation.lean#L1147) · [多项式时间的电路模拟，定理 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
 
 任意固定的删门比例 $0<\delta<1$ 都给出 $S(n-k(n))\le(1-\delta)S(n)$。每一步都可以另选一份精确最优电路。当 $k(n)=o(n)$ 时，从 $n$ 点降到 $n/2$ 点所需的步数趋于无穷。此前「保留四分之一」的判据取 $\delta=3/4$，若再有 $k(n)=O(\sqrt n)$，可得 $2^{\Omega(\sqrt n)}$ 扇门的下界。上面的弱猜想一步用完 $n/2$ 对搭档，此时保留四分之一仍与二次门数相容。[Lean 增长率证明](experiments/SublinearPairSeparation.lean#L967) · [原四分之一判据的推导](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档)
 
@@ -47,6 +49,8 @@ $r_+(m)\to 0$。对任意 $\epsilon>0$，存在 $m_0(\epsilon)$，使每个 $m\g
 $$\frac{(n+1)\delta_n}{k(n)+1}\longrightarrow\infty.$$
 
 例如，$k(n)=\lceil\sqrt n\rceil$、$\delta_n=n^{-1/4}$ 就满足条件。若只要求这个比值超过某个固定常数，多项式也能做到。对 $n>d$，把 $n$ 减一，多项式 $T_d(n)=n(n-1)\cdots(n-d+1)$ 的值就恰好减少 $d/n$ 的比例，而固定次数 $d$ 可以选得任意大。[相对删门定理](experiments/SublinearPairSeparation.lean#L1143) · [多项式对照](experiments/SublinearPairSeparation.lean#L1193)
+
+固定比例的数值条件对应经典的快速变化序列。对最终为正且单调不减的 $a_m=S(2m)$，下标后退 $o(m)$ 就能使数值下降一个固定比例，等价于该序列具有指数 $+\infty$ 的快速变化性质，即每个固定的 $0<\lambda<1$ 都满足 $a_{\lfloor\lambda m\rfloor}/a_m\to0$。研究笔记给出这一等价的推导。电路猜想还要求指定化简器在实际的精确最优电路上兑现删门量。[Djurčić、Kočinac 与 Žižović（2007）](https://doi.org/10.1016/j.jmaa.2006.05.024) · [Timotić、Djurčić 与 Kočinac（2022），定义 2](https://doi.org/10.2298/AADM181107003T) · [偶数规模的推导](docs/MixedGuardPooling.md#rapid-variation)
 
 ## 省流 / 实测情况
 
@@ -183,7 +187,7 @@ Sengupta 和 Venkateswaran 在 1994 年研究二分完美匹配时已用过“�
 
 - **Apple Silicon Mac**：可先运行 `python3 scripts/bootstrap.py --local-lean`，脚本会把固定版本的 Lean 编译器下载并校验后安装到项目局部的 `.toolchain/` 目录中。
 - **离线运行**：随仓已提供上游 Cook–Levin 源码归档，[bootstrap.py](scripts/bootstrap.py) 会在解包前校验 SHA-256。工具链安装完成后，主检查可全程离线执行。
-- **检查流程说明**：[check.sh](scripts/check.sh) 依次执行 `bootstrap.py`、`lake build`、公理审计 `lake env lean Audit.lean`、输入拼接检查 `lake env lean experiments/EncodedCuts.lean`，以及 [experiments/](experiments/) 下的全部标准库 Python 检验脚本。
+- [核验脚本](scripts/check.sh) 构建项目、审计公理、核验包括[条件分离定理](experiments/SublinearPairSeparation.lean#L1143-L1153)在内的独立 Lean 实验，并运行脚本中列出的 Python 检验。
 - **公理审计说明**：[Audit.lean](Audit.lean) 仅导入实现模块（见 [Mobius.lean](Mobius.lean)），只允许 Lean 标准三公理（`propext`、`Classical.choice`、`Quot.sound`）。如前所述，四比特一般独立双表的 **282 全局下界**及 `Gap266` 仍依赖书面证明与精确 Python 证书，尚未全部进入 Lean。
 
 ## 目录与来源

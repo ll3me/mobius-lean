@@ -1,19 +1,59 @@
 cff-version: 1.2.0
 message: "If you use this software or its accompanying proofs, please cite this release."
-title: "Paired Restrictions and a Gate Lower Bound for Directed Hamiltonian Cycle"
+title: "The Sublinear Pair-Contraction Conjecture for Directed Hamiltonian Cycle and Its Lean-Checked Implication for P versus NP"
 type: software
 authors:
   - family-names: ll3me
     website: "https://github.com/ll3me"
-version: "0.1.0"
-date-released: 2026-11-25
-doi: 10.5281/zenodo.24526295
+version: "0.2.0"
+date-released: 2026-11-26
+url: "https://github.com/ll3me/mobius-lean/releases/tag/v0.2.0"
 repository-code: "https://github.com/ll3me/mobius-lean"
 license: Apache-2.0
 abstract: >-
-  Research software and proof notes on directed Hamiltonian cycle detection
-  by Boolean circuits with binary AND and OR gates, unary NOT gates, and
-  unrestricted sharing. The notes derive a gate lower bound of
-  (11/7)n(n-1) - 3n - 4 by restricting pairs of vertices. Lean 4 checks
-  counting implications and the size induction. Python programs exercise
-  the graph constructions and gate counts on finite instances.
+  The sublinear pair-contraction conjecture for directed Hamiltonian cycle
+  remains open. It asserts that at every sufficiently large even vertex
+  count n, some minimum-size AND/OR/NOT circuit with unrestricted sharing
+  admits k(n) = o(n) disjoint oriented pairs on which the fixed simplifier
+  R+ deletes at least 1% of the gates. The remaining circuit must decide
+  every graph on n − k(n) vertices. Lean 4 proves that if this conjecture
+  holds, then NP ⊈ P/poly and P ≠ NP. The formal proof
+  also covers a vanishing saved fraction when the saving relative to the
+  fraction of vertices removed grows without bound. The accompanying
+  notes relate the numerical recurrence to rapid variation of positive
+  sequences. Sources for rapid variation are Djurčić, Kočinac and Žižović
+  (2007, DOI 10.1016/j.jmaa.2006.05.024) and Timotić, Djurčić and Kočinac
+  (2022, Definition 2, DOI 10.2298/AADM181107003T).
+references:
+  - type: article
+    authors:
+      - family-names: "Djurčić"
+        given-names: "D."
+      - family-names: "Kočinac"
+        given-names: "Lj. D. R."
+      - family-names: "Žižović"
+        given-names: "M. R."
+    title: "Some properties of rapidly varying sequences"
+    journal: "Journal of Mathematical Analysis and Applications"
+    year: 2007
+    volume: 327
+    issue: 2
+    start: 1297
+    end: 1306
+    doi: "10.1016/j.jmaa.2006.05.024"
+  - type: article
+    authors:
+      - family-names: "Timotić"
+        given-names: "Valentina"
+      - family-names: "Djurčić"
+        given-names: "Dragan"
+      - family-names: "Kočinac"
+        given-names: "Ljubiša D. R."
+    title: "On rapidly varying sequences"
+    journal: "Applicable Analysis and Discrete Mathematics"
+    year: 2022
+    volume: 16
+    issue: 1
+    start: 83
+    end: 90
+    doi: "10.2298/AADM181107003T"

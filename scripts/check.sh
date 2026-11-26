@@ -11,6 +11,7 @@ lake build
 lake env lean Audit.lean
 lake env lean experiments/EncodedCuts.lean
 lake env lean experiments/HamiltonianAffineCut.lean
+lake env lean -DwarningAsError=true experiments/SublinearPairSeparation.lean
 python3 experiments/sign_obstruction.py
 python3 experiments/two_phases.py
 python3 experiments/contractions.py

@@ -6,7 +6,7 @@
 
 Research, Lean 4 formalization, and initial notes in this repository were developed with GPT 6.2-Astra. As of 2026/11/25, work on this repository has used approximately 1.22B tokens.
 
-**Cite v0.1.0** · [Zenodo DOI 10.5281/zenodo.24526295](https://doi.org/10.5281/zenodo.24526295) · [GitHub release notes](https://github.com/ll3me/mobius-lean/releases/tag/v0.1.0)
+**v0.2.0** · [Release notes and citation](https://github.com/ll3me/mobius-lean/releases/tag/v0.2.0) · [Zenodo version history](https://doi.org/10.5281/zenodo.24526294) · [v0.1.0 archive](https://doi.org/10.5281/zenodo.24526295)
 
 <a name="pair-contraction-conjecture"></a>
 
@@ -38,7 +38,9 @@ There is a constant $0<\sigma<1/4$, **independent of size**, such that $r_+(m)\l
 
 ## Deleting 1% of the gates with sublinearly many pairs would imply P ≠ NP
 
-Suppose that for every sufficiently large even $n$, there is a minimum-size circuit for $H_n$ and a choice of $k(n)=o(n)$ disjoint oriented pairs for which $R_+$ deletes at least **1% of the gates**. The surviving circuit must decide every graph on $n-k(n)$ vertices. Lean verifies that these hypotheses imply $S(n)=n^{\omega(1)}$, **$\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm P\ne\mathrm{NP}$**. Whether $R_+$ achieves this saving remains open. [Lean theorem and 1% example](experiments/SublinearPairSeparation.lean#L1147) · [Polynomial-time circuit simulation, Theorem 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
+The **sublinear pair-contraction conjecture remains open**. It asserts that for every sufficiently large even $n$, some minimum-size circuit for $H_n$ admits $k(n)=o(n)$ disjoint oriented pairs on which $R_+$ deletes at least **1% of the gates**. The surviving circuit must decide every graph on $n-k(n)$ vertices.
+
+**Lean proves the conditional implication.** It takes this saving as an explicit hypothesis and derives $S(n)=n^{\omega(1)}$, $\mathrm{NP}\not\subseteq\mathrm{P/poly}$ and hence $\mathrm P\ne\mathrm{NP}$. [Lean theorem and 1% example](experiments/SublinearPairSeparation.lean#L1147) · [Polynomial-time circuit simulation, Theorem 2.1](https://cseweb.ucsd.edu/classes/fa21/cse200-a/notes/6-boolean%20circuits.pdf)
 
 Any fixed saving $0<\delta<1$ gives $S(n-k(n))\le(1-\delta)S(n)$. Each step can use a different minimum-size circuit. With $k(n)=o(n)$, the number of steps needed to halve $n$ grows without bound. The earlier quarter-survival criterion takes $\delta=3/4$ and gives $2^{\Omega(\sqrt n)}$ gates if $k(n)=O(\sqrt n)$. The weak conjecture above uses all $n/2$ pairs in one step, for which a one-quarter ratio is compatible with quadratic size. [Growth proof in Lean](experiments/SublinearPairSeparation.lean#L967) · [Original quarter-survival argument](docs/MixedGuardPooling.md#到达四分之一需要多少个搭档)
 
@@ -47,6 +49,8 @@ The saving can even tend to zero. Let $\delta_n$ be the fraction of gates actual
 $$\frac{(n+1)\delta_n}{k(n)+1}\longrightarrow\infty.$$
 
 For example, $k(n)=\lceil\sqrt n\rceil$ and $\delta_n=n^{-1/4}$ satisfy the condition. A polynomial can exceed any one prescribed constant in this ratio. For $n>d$, reducing $n$ by one reduces $T_d(n)=n(n-1)\cdots(n-d+1)$ by exactly a $d/n$ fraction, and the fixed degree $d$ can be chosen arbitrarily large. [Relative-saving theorem](experiments/SublinearPairSeparation.lean#L1143) · [Polynomial example](experiments/SublinearPairSeparation.lean#L1193)
+
+For the eventually positive, nondecreasing sequence $a_m=S(2m)$, a step back by $h_m=o(m)$ that reduces its value by a fixed fraction at every sufficiently large $m$ is equivalent to rapid variation of index $+\infty$. For each fixed $0<\lambda<1$ this means $a_{\lfloor\lambda m\rfloor}/a_m\to0$. The circuit conjecture additionally requires the specified simplifier to realize the saving on an actual optimal circuit. [Djurčić, Kočinac and Žižović (2007)](https://doi.org/10.1016/j.jmaa.2006.05.024) · [Timotić, Djurčić and Kočinac (2022), Definition 2](https://doi.org/10.2298/AADM181107003T) · [Derivation for even vertex counts](docs/MixedGuardPooling.md#rapid-variation)
 
 ## TL;DR & Verification Status
 
@@ -183,7 +187,7 @@ Requirements: pinned Lean 4 toolchain `v4.35.0-rc2` (see [lean-toolchain](lean-t
 
 - **Apple Silicon Mac**: You can optionally run `python3 scripts/bootstrap.py --local-lean` first to download, verify, and unpack the pinned Lean toolchain into `.toolchain/`.
 - **Offline check**: The upstream Cook–Levin tarball is vendored in the repo and SHA-256 verified by [bootstrap.py](scripts/bootstrap.py) before extraction. Once the toolchain is installed, `./scripts/check.sh` runs completely offline.
-- **What `check.sh` runs**: `bootstrap.py`, `lake build`, `lake env lean Audit.lean`, `lake env lean experiments/EncodedCuts.lean`, and all standard-library Python scripts in [experiments/](experiments/).
+- The [verification script](scripts/check.sh) builds the project, audits axioms, checks the standalone Lean experiments including [the conditional separation theorem](experiments/SublinearPairSeparation.lean#L1143-L1153), and runs the listed Python checks.
 - **Axiom audit**: [Audit.lean](Audit.lean) imports only the implementation modules ([Mobius.lean](Mobius.lean)) and allows only `propext`, `Classical.choice`, and `Quot.sound`. As noted above, the general two-table **282 lower bound** and `Gap266` currently rely on written proofs and exact Python certificates rather than full Lean proofs.
 
 ## Repository Layout & Sources

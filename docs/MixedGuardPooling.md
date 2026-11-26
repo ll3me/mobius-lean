@@ -72,6 +72,18 @@ $$\left[q\frac{m-1}{2(n-1)}-q(1-p)-1\right]_+.$$
 * 在偶数 $t$ 的窗口 $t<n\le2t$，若 $S(2t)\le C t^2$，则至少 $t/4$ 个偶数规模（计数向上取整）须指定**超过** $\lfloor3t/(16C)\rfloor$ 对才有可能独自完成四分之三删门。实际上，$S(n)\ge n(n-1)-1\ge t^2$；能用 $k$ 对完成的每个规模都有 $S(n)-S(n-k)\ge3t^2/4$。在窗口求和至多 $kS(2t)$，所以这样的规模至多 $4Ck/3$ 个。近二次窗口内，至少半数偶数规模需要线性数量的搭档共同起作用。
 * 若在**每个充分大的偶数规模**都能只用 $k(n)=o(n)$ 对使精确最优电路留下至多四分之一，则 $S(n)=n^{\omega(1)}$。令 $n'$ 为 $n-k(n)$ 以下（含）的最大偶数，有 $S(n)\ge4S(n')$。对任意固定 $d$，当 $n$ 足够大时 $n'\ge4^{-1/d}n$。在偶数规模归纳即得 $S(n)\ge a_d n^d$，其中起始有限区间给 $a_d>0$，奇数规模由单调性补齐。由有向哈密顿判定的 NP 完全性，这个加强将推出 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$，进而 $\mathrm P\ne\mathrm{NP}$。若 $k(n)=O(\sqrt n)$，从 $n$ 降至 $n/2$ 至少能迭代 $\Omega(\sqrt n)$ 步，门数下界更具体地达到 $2^{\Omega(\sqrt n)}$。这些前提都是加强猜想，尚未证明。[原弱猜想的参数](PairContraction.md#boolean-contraction-operator)
 
+<a id="rapid-variation"></a>
+
+## 固定比例递推与快速变化序列
+
+在 de Haan 意义下，正数序列 $a_m$ 的快速变化指数为 $+\infty$，指对每个固定的 $\lambda>1$ 都有 $a_{\lfloor\lambda m\rfloor}/a_m\to\infty$。对单调不减的序列，等价地可取 $0<\lambda<1$ 并要求比值趋于零。序列定义见 Timotić、Djurčić 与 Kočinac 的定义 2，序列与相应阶梯函数的联系见 Djurčić、Kočinac 与 Žižović。[2022 年论文，定义 2](https://doi.org/10.2298/AADM181107003T) · [2007 年论文](https://doi.org/10.1016/j.jmaa.2006.05.024)
+
+取 $a_m=S(2m)$。它最终为正且单调不减。若某个固定 $0<c<1$ 和 $k(n)=o(n)$ 给出 $S(n-k(n))\le cS(n)$，在偶数规模令 $h_m=\lceil k(2m)/2\rceil$，便有 $a_{m-h_m}\le c a_m$。连续后退任意固定的 $j$ 次，下标依旧是 $(1-o(1))m$，序列值至多为 $c^j a_m$。故对每个 $0<\lambda<1$，比值 $a_{\lfloor\lambda m\rfloor}/a_m$ 的上极限至多为 $c^j$。让 $j$ 增大即得零。
+
+反过来，若序列快速变化，对固定的 $c\in(0,1)$，在每个充分大的 $m$ 取使 $a_{m-h_m}\le c a_m$ 成立的最小正整数 $h_m$。对任意固定的 $\lambda\in(0,1)$，最终都有 $h_m\le m-\lfloor\lambda m\rfloor$。令 $\lambda$ 趋于一，得 $h_m=o(m)$，于是 $k(2m)=2h_m$ 给出所需的数值递推。
+
+这是本版对**最小门数序列**的书面推导。找到具体的最优电路、少量有向搭档，并由固定的 $R_+$ 实际删掉这些门，仍是开放猜想。Lean 以这项电路条件为假设，证明它蕴含 $\mathrm{NP}\not\subseteq\mathrm{P/poly}$ 和 $\mathrm P\ne\mathrm{NP}$。[形式化假设](../experiments/SublinearPairSeparation.lean#L1094-L1114) · [Lean 条件定理](../experiments/SublinearPairSeparation.lean#L1143-L1153)
+
 ## 前两个搭档已被上界排除
 
 把弱猜想加强为“只钉至多两条原弧的值，或只收至多两对顶点，剩余就已至多为 $S(n)/4$”。即使允许语义重优化，这个加强在正比例的偶数规模上都会失败。任意两条原弧的相容零一钉值仍保留 $H_{n-2}$；两个标准搭档也直接保留 $H_{n-2}$。令 $b(M)$ 计 $2\le m\le M$ 中满足 $4S(2m-2)>S(2m)$ 的个数。那么
